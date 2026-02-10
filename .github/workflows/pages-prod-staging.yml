@@ -3,10 +3,9 @@
 # - Push to `main`   → Production at site root:   https://<owner>.github.io/<repo>/
 # - Push to `develop` → Staging at /staging:       https://<owner>.github.io/<repo>/staging/
 #
-# Both write to the same `gh-pages` branch (keep_files: true so prod and staging don’t overwrite).
+# Build job uploads dist as artifact; deploy jobs download it and push to gh-pages (keep_files: true).
 #
 # Enable Pages: Settings → Pages → Source = "Deploy from a branch" → Branch = gh-pages, Folder = / (root).
-# Expected URLs: production at /, staging at /staging (same origin).
 name: Pages (production + staging)
 
 on:
@@ -14,11 +13,9 @@ on:
     branches: [main, develop]
 
 jobs:
-  deploy-production:
+  build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,13 +32,38 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build frontend (production)
+      - name: Set BASE_PATH for build
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "BASE_PATH=/${{ github.event.repository.name }}/" >> $GITHUB_ENV
+          else
+            echo "BASE_PATH=/${{ github.event.repository.name }}/staging/" >> $GITHUB_ENV
+          fi
+
+      - name: Build frontend
         run: pnpm --filter frontend build
-        env:
-          BASE_PATH: /${{ github.event.repository.name }}/
 
       - name: Prepare 404 for SPA routing
         run: cp frontend/dist/index.html frontend/dist/404.html
+
+      - name: Upload frontend dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+    steps:
+      - name: Download frontend dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: release
 
       - name: Deploy production to gh-pages root
         uses: peaceiris/actions-gh-pages@v4
@@ -49,39 +71,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: frontend/dist
+          publish_dir: release
           destination_dir: .
           keep_files: true
           publish_branch: gh-pages
 
   deploy-staging:
+    needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Download frontend dist artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build frontend (staging)
-        run: pnpm --filter frontend build
-        env:
-          BASE_PATH: /${{ github.event.repository.name }}/staging/
-
-      - name: Prepare 404 for SPA routing
-        run: cp frontend/dist/index.html frontend/dist/404.html
+          name: frontend-dist
+          path: release
 
       - name: Deploy staging to gh-pages/staging
         uses: peaceiris/actions-gh-pages@v4
@@ -89,7 +95,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: frontend/dist
+          publish_dir: release
           destination_dir: staging
           keep_files: true
           publish_branch: gh-pages
