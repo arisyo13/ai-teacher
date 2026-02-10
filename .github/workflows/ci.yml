@@ -66,7 +66,7 @@ jobs:
       - name: Deploy staging to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          personal_access_token: ${{ secrets.STAGING_PAGES_TOKEN }}
+          personal_token: ${{ secrets.STAGING_PAGES_TOKEN }}
           external_repository: ${{ github.repository_owner }}/ai-teacher-staging
           publish_dir: frontend/dist
           keep_files: false
