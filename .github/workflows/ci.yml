@@ -34,11 +34,10 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
-  deploy-staging:
+  build:
     needs: check
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    environment: staging
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,24 +54,48 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build frontend (staging)
+      - name: Set BASE_PATH for build
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "BASE_PATH=/${{ github.event.repository.name }}/" >> $GITHUB_ENV
+          else
+            echo "BASE_PATH=/" >> $GITHUB_ENV
+          fi
+
+      - name: Build frontend
         run: pnpm --filter frontend build
-        env:
-          BASE_PATH: /
 
       - name: Prepare 404 for SPA routing
         run: cp frontend/dist/index.html frontend/dist/404.html
+
+      - name: Upload frontend dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+    steps:
+      - name: Download frontend dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: release
 
       - name: Deploy staging to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           personal_token: ${{ secrets.STAGING_PAGES_TOKEN }}
           external_repository: ${{ github.repository_owner }}/ai-teacher-staging
-          publish_dir: frontend/dist
+          publish_dir: release
           keep_files: false
 
   deploy-production:
-    needs: check
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
@@ -81,33 +104,16 @@ jobs:
       id-token: write
     environment: production
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Download frontend dist artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version: "22"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build frontend (production)
-        run: pnpm --filter frontend build
-        env:
-          BASE_PATH: /${{ github.event.repository.name }}/
-
-      - name: Prepare 404 for SPA routing
-        run: cp frontend/dist/index.html frontend/dist/404.html
+          name: frontend-dist
+          path: release
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/dist
+          path: release
 
       - name: Deploy to GitHub Pages
         id: deploy
