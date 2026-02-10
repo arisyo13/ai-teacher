@@ -1,0 +1,91 @@
+# GitHub Pages: one site, one repo, two deploy targets on the gh-pages branch.
+#
+# - Push to `main`   → Production at site root:   https://<owner>.github.io/<repo>/
+# - Push to `develop` → Staging at /staging:       https://<owner>.github.io/<repo>/staging/
+#
+# Both write to the same `gh-pages` branch (keep_files: true so prod and staging don’t overwrite).
+#
+# Enable Pages: Settings → Pages → Source = "Deploy from a branch" → Branch = gh-pages, Folder = / (root).
+# Expected URLs: production at /, staging at /staging (same origin).
+name: Pages (production + staging)
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend (production)
+        run: pnpm --filter frontend build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+
+      - name: Prepare 404 for SPA routing
+        run: cp frontend/dist/index.html frontend/dist/404.html
+
+      - name: Deploy production to gh-pages root
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend/dist
+          destination_dir: .
+          keep_files: true
+          publish_branch: gh-pages
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend (staging)
+        run: pnpm --filter frontend build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/staging/
+
+      - name: Prepare 404 for SPA routing
+        run: cp frontend/dist/index.html frontend/dist/404.html
+
+      - name: Deploy staging to gh-pages/staging
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend/dist
+          destination_dir: staging
+          keep_files: true
+          publish_branch: gh-pages
