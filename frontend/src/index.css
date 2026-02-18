@@ -1,45 +1,7 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-background: oklch(1 0 0);
-  --color-foreground: oklch(0.145 0 0);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.145 0 0);
-  --color-primary: oklch(0.205 0 0);
-  --color-primary-foreground: oklch(0.985 0 0);
-  --color-secondary: oklch(0.97 0 0);
-  --color-secondary-foreground: oklch(0.205 0 0);
-  --color-muted: oklch(0.97 0 0);
-  --color-muted-foreground: oklch(0.556 0 0);
-  --color-accent: oklch(0.97 0 0);
-  --color-accent-foreground: oklch(0.205 0 0);
-  --color-destructive: oklch(0.577 0.245 27.325);
-  --color-destructive-foreground: oklch(0.985 0 0);
-  --color-border: oklch(0.922 0 0);
-  --color-input: oklch(0.922 0 0);
-  --color-ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
-}
-
-.dark {
-  --color-background: oklch(0.145 0 0);
-  --color-foreground: oklch(0.985 0 0);
-  --color-card: oklch(0.145 0 0);
-  --color-card-foreground: oklch(0.985 0 0);
-  --color-primary: oklch(0.985 0 0);
-  --color-primary-foreground: oklch(0.205 0 0);
-  --color-secondary: oklch(0.269 0 0);
-  --color-secondary-foreground: oklch(0.985 0 0);
-  --color-muted: oklch(0.269 0 0);
-  --color-muted-foreground: oklch(0.708 0 0);
-  --color-accent: oklch(0.269 0 0);
-  --color-accent-foreground: oklch(0.985 0 0);
-  --color-destructive: oklch(0.396 0.141 25.723);
-  --color-destructive-foreground: oklch(0.985 0 0);
-  --color-border: oklch(0.269 0 0);
-  --color-input: oklch(0.269 0 0);
-  --color-ring: oklch(0.439 0 0);
-}
+/* Class-based dark mode: .dark on html (from theme toggle) */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   html {
@@ -47,18 +9,25 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply font-sans antialiased text-[#213547] bg-white dark:text-[rgba(255,255,255,0.87)] dark:bg-[#242424];
+    @apply font-sans antialiased bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100;
   }
   body {
-    @apply m-0 min-h-screen flex mx-auto;
+    @apply m-0 min-h-screen w-full bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100;
+  }
+  #root {
+    width: 100%;
+    min-height: 100vh;
   }
   a {
-    @apply font-medium text-[#646cff] no-underline hover:text-[#535bf2] dark:hover:text-[#747bff];
+    @apply font-medium no-underline text-slate-900 dark:text-slate-100;
+  }
+  a:hover {
+    @apply text-slate-700 dark:text-slate-300;
   }
   h1 {
     @apply text-4xl leading-tight;
   }
   button {
-    @apply rounded-lg border border-transparent px-5 py-2.5 text-base font-medium cursor-pointer transition-[border-color] duration-150 bg-[#f9f9f9] hover:border-[#646cff] focus:outline focus-visible:ring-4 focus-visible:ring-[#646cff]/50 dark:bg-[#1a1a1a] dark:hover:border-[#747bff];
+    @apply rounded-lg border border-transparent px-5 py-2.5 text-base font-medium cursor-pointer transition-colors bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline focus-visible:ring-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950;
   }
 }
