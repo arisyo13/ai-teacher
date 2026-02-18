@@ -10,8 +10,8 @@ export const Layout = () => {
   const { t, i18n } = useTranslation();
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between gap-4">
+    <div className="min-h-screen w-full flex flex-col">
+      <header className="w-full px-6 py-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between gap-4">
         <Link to="/" className="font-semibold text-inherit no-underline hover:text-inherit">
           {t("layout.appName")}
         </Link>
@@ -28,7 +28,7 @@ export const Layout = () => {
           ))}
         </select>
       </header>
-      <main className="flex-1 p-6">
+      <main className="flex-1 w-full p-6 flex justify-center">
         <Outlet />
       </main>
     </div>
