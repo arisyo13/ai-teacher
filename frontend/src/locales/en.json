@@ -56,6 +56,15 @@
       "placeholder": "Placeholder — registration (teacher/student) will be implemented later."
     }
   },
+  "account": {
+    "title": "Account",
+    "subtitle": "Manage your profile and preferences.",
+    "profile": {
+      "title": "Profile",
+      "description": "Your personal information.",
+      "placeholder": "Profile settings will be available here once authentication is implemented."
+    }
+  },
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Overview of your classes and activity.",
