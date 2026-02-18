@@ -48,12 +48,22 @@
       "password": "Κωδικός",
       "forgotPassword": "Ξεχάσατε τον κωδικό; (σύντομα)",
       "submit": "Σύνδεση",
+      "submitting": "Σύνδεση…",
       "noAccount": "Δεν έχετε λογαριασμό;",
       "signUpLink": "Εγγραφή"
     },
     "signup": {
       "title": "Εγγραφή",
-      "placeholder": "Προσωρινά — η εγγραφή (δασκάλου/μαθητή) θα υλοποιηθεί αργότερα."
+      "description": "Δημιουργήστε λογαριασμό για να ξεκινήσετε.",
+      "email": "Email",
+      "password": "Κωδικός",
+      "displayName": "Όνομα",
+      "displayNamePlaceholder": "Το όνομά σας",
+      "submit": "Εγγραφή",
+      "submitting": "Δημιουργία λογαριασμού…",
+      "hasAccount": "Έχετε ήδη λογαριασμό;",
+      "signInLink": "Σύνδεση",
+      "confirmEmail": "Ελέγξτε το email σας για να επιβεβαιώσετε τον λογαριασμό πριν συνδεθείτε."
     }
   },
   "account": {

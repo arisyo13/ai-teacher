@@ -48,12 +48,22 @@
       "password": "Password",
       "forgotPassword": "Forgot password? (coming soon)",
       "submit": "Log in",
+      "submitting": "Signing in…",
       "noAccount": "Don't have an account?",
       "signUpLink": "Sign up"
     },
     "signup": {
       "title": "Sign up",
-      "placeholder": "Placeholder — registration (teacher/student) will be implemented later."
+      "description": "Create an account to get started.",
+      "email": "Email",
+      "password": "Password",
+      "displayName": "Display name",
+      "displayNamePlaceholder": "Your name",
+      "submit": "Sign up",
+      "submitting": "Creating account…",
+      "hasAccount": "Already have an account?",
+      "signInLink": "Log in",
+      "confirmEmail": "Please check your email to confirm your account before signing in."
     }
   },
   "account": {

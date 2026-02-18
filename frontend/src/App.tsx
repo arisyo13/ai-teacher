@@ -1,6 +1,8 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import { Layout } from "./layouts/Layout";
+import { GuestOnlyLayout } from "./layouts/GuestOnlyLayout";
+import { ProtectedLayout } from "./layouts/ProtectedLayout";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { HomePage } from "./features/home/HomePage";
 import { LoginPage } from "./features/auth/LoginPage";
@@ -18,18 +20,28 @@ const App = () => {
         path: "/",
         Component: Layout,
         children: [
-          { index: true, Component: HomePage },
-          { path: "login", Component: LoginPage },
-          { path: "signup", Component: SignupPage },
-          { path: "account", Component: AccountPage },
           {
-            path: "dashboard",
-            Component: DashboardLayout,
-            children: [{ index: true, Component: DashboardPage }],
+            element: <GuestOnlyLayout />,
+            children: [
+              { index: true, Component: HomePage },
+              { path: "login", Component: LoginPage },
+              { path: "signup", Component: SignupPage },
+            ],
+          },
+          {
+            element: <ProtectedLayout />,
+            children: [
+              { path: "account", Component: AccountPage },
+              {
+                path: "dashboard",
+                Component: DashboardLayout,
+                children: [{ index: true, Component: DashboardPage }],
+              },
+            ],
           },
         ],
       },
-  ],
+    ],
     { basename }
   );
   return <RouterProvider router={router} />;
