@@ -4,9 +4,23 @@ import { Button } from "@/components/ui/button";
 
 export const HomePage = () => {
   const { t } = useTranslation();
+  const content = [
+    {
+      title: t("home.forTeachers.title"),
+      description: t("home.forTeachers.description"),
+    },
+    {
+      title: t("home.forStudents.title"),
+      description: t("home.forStudents.description"),
+    },
+    {
+      title: t("home.howItWorks.title"),
+      description: t("home.howItWorks.description"),
+    },
+  ]
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto">
       <section className="text-center py-12 md:py-16">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
           {t("home.hero.title")}
@@ -21,28 +35,21 @@ export const HomePage = () => {
           <Button variant="outline" asChild>
             <Link to="/login">{t("common.logIn")}</Link>
           </Button>
+          <Button variant="ghost" asChild>
+            <Link to="/dashboard">{t("dashboard.title")}</Link>
+          </Button>
         </div>
       </section>
 
       <section className="mt-16 space-y-10">
-        <div>
-          <h2 className="text-2xl font-semibold">{t("home.forTeachers.title")}</h2>
-          <p className="mt-2 text-muted-foreground">
-            {t("home.forTeachers.description")}
-          </p>
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold">{t("home.forStudents.title")}</h2>
-          <p className="mt-2 text-muted-foreground">
-            {t("home.forStudents.description")}
-          </p>
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold">{t("home.howItWorks.title")}</h2>
-          <p className="mt-2 text-muted-foreground">
-            {t("home.howItWorks.description")}
-          </p>
-        </div>
+        {content.map((item) => (
+          <div key={item.title}>
+            <h2 className="text-2xl font-semibold">{item.title}</h2>
+            <p className="mt-2 text-muted-foreground">
+              {item.description}
+            </p>
+          </div>
+        ))}
       </section>
 
       <section className="mt-16 pt-8 border-t border-neutral-200 dark:border-neutral-700 text-center">
