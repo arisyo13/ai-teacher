@@ -1,0 +1,49 @@
+{
+  "common": {
+    "appName": "AI Teacher",
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "getStarted": "Get started"
+  },
+  "layout": {
+    "appName": "AI Teacher"
+  },
+  "home": {
+    "hero": {
+      "title": "AI Teacher",
+      "subtitle": "An AI-powered teaching platform. Teachers create classes and upload materials; students enroll and ask questions. The chatbot answers using only your course content."
+    },
+    "forTeachers": {
+      "title": "For teachers",
+      "description": "Register, create classes and subjects, and upload learning materials. Students see only what you publish; the AI uses your content to answer questions."
+    },
+    "forStudents": {
+      "title": "For students",
+      "description": "Sign up, enroll in classes, and ask questions in a chat. Answers are grounded in the subject's uploaded content (RAG), not the open internet."
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "description": "The AI chatbot streams responses and uses only the course materials you or your teacher have added. More features—like an animated 3D teacher avatar—are planned."
+    },
+    "cta": {
+      "ready": "Ready to try it?"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "description": "Enter your email and password to access your account.",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "password": "Password",
+      "forgotPassword": "Forgot password? (coming soon)",
+      "submit": "Log in",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up"
+    },
+    "signup": {
+      "title": "Sign up",
+      "placeholder": "Placeholder — registration (teacher/student) will be implemented later."
+    }
+  }
+}
