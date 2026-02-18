@@ -39,7 +39,7 @@ export const LoginPage = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{t("auth.login.password")}</Label>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   {t("auth.login.forgotPassword")}
                 </span>
               </div>
@@ -56,9 +56,9 @@ export const LoginPage = () => {
             <Button type="submit" className="w-full">
               {t("auth.login.submit")}
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400">
               {t("auth.login.noAccount")}{" "}
-              <Link to="/signup" className="text-primary underline-offset-4 hover:underline">
+              <Link to="/signup" className="text-slate-900 dark:text-slate-100 font-medium underline-offset-4 hover:underline">
                 {t("auth.login.signUpLink")}
               </Link>
             </p>

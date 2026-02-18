@@ -20,7 +20,7 @@ export const DashboardPage = () => {
     <div className="w-full max-w-4xl mx-auto space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.title")}</h1>
-        <p className="text-muted-foreground mt-1">{t("dashboard.subtitle")}</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">{t("dashboard.subtitle")}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -44,9 +44,9 @@ export const DashboardPage = () => {
         <CardContent>
           <ul className="space-y-4">
             {DUMMY_RECENT.map(({ id, titleKey, timeKey }) => (
-              <li key={id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+              <li key={id} className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3 last:border-0 last:pb-0">
                 <span className="text-sm font-medium">{t(titleKey)}</span>
-                <span className="text-xs text-muted-foreground">{t(timeKey)}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{t(timeKey)}</span>
               </li>
             ))}
           </ul>

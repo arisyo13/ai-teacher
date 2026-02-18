@@ -1,21 +1,13 @@
-# GitHub Pages: one site, one repo, two deploy targets on the gh-pages branch.
-#
-# - Push to `main`   → Production at site root:   https://<owner>.github.io/<repo>/
-# - Push to `develop` → Staging at /staging:       https://<owner>.github.io/<repo>/staging/
-#
-# Build job uploads dist as artifact; deploy jobs download it and push to gh-pages (keep_files: true).
-#
-# Enable Pages: Settings → Pages → Source = "Deploy from a branch" → Branch = gh-pages, Folder = / (root).
 name: Pages (production + staging)
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,29 +65,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: release
           destination_dir: .
-          keep_files: true
-          publish_branch: gh-pages
-
-  deploy-staging:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    permissions:
-      contents: write
-    steps:
-      - name: Download frontend dist artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: release
-
-      - name: Deploy staging to gh-pages/staging
-        uses: peaceiris/actions-gh-pages@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: release
-          destination_dir: staging
           keep_files: true
           publish_branch: gh-pages
