@@ -47,7 +47,7 @@ export const DashboardLayout = () => {
   return (
     <div className="-ml-6 -my-6 flex min-h-[calc(100vh-4.5rem)] w-[calc(100%+1.5rem)] flex-1">
       {/* Left sidebar — sticky so it stays visible when scrolling content */}
-      <aside className="sticky top-[4.5rem] flex h-[calc(100vh-4.5rem)] w-56 shrink-0 flex-col border-r border-border/50 dark:border-border/40 bg-muted/60 dark:bg-muted/30">
+      <aside className="sticky top-[4.5rem] flex h-[calc(100vh-4.5rem)] w-56 shrink-0 flex-col border-r border-slate-200/60 dark:border-slate-700/50 bg-slate-100/80 dark:bg-slate-800/50">
         {/* Top: dashboard nav */}
         <nav className="p-4">
           <Link
@@ -55,8 +55,8 @@ export const DashboardLayout = () => {
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               isOverview
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                : "text-slate-500 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100"
             )}
           >
             <LayoutDashboardIcon />
@@ -68,7 +68,7 @@ export const DashboardLayout = () => {
         <div className="flex-1" />
 
         {/* Bottom left: user menu */}
-        <div className="border-t border-border/50 dark:border-border/40 p-3">
+        <div className="border-t border-slate-200/60 dark:border-slate-700/50 p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -77,13 +77,13 @@ export const DashboardLayout = () => {
                 aria-label={t("layout.userMenu.openMenu")}
               >
                 <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">
+                  <AvatarFallback className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
                     {DUMMY_USER.name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1 text-left">
                   <p className="truncate text-sm font-medium">{DUMMY_USER.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{DUMMY_USER.email}</p>
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">{DUMMY_USER.email}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -91,7 +91,7 @@ export const DashboardLayout = () => {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">{DUMMY_USER.name}</p>
-                  <p className="text-xs text-muted-foreground">{DUMMY_USER.email}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{DUMMY_USER.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -102,7 +102,7 @@ export const DashboardLayout = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
                 onClick={() => navigate("/login")}
               >
                 <LogOutIcon />

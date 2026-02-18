@@ -29,12 +29,12 @@ export const Layout = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col">
-      <header className="sticky top-0 z-10 w-full px-6 py-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between gap-4 bg-background">
+      <header className="sticky top-0 z-10 w-full px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-4 bg-white dark:bg-slate-950">
         <div className="flex items-center gap-6">
-          <Link to="/" className="font-semibold text-inherit no-underline hover:text-inherit">
+          <Link to="/" className="font-semibold text-slate-900 dark:text-slate-100 no-underline hover:text-inherit">
             {t("layout.appName")}
           </Link>
-          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/dashboard" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
             {t("dashboard.title")}
           </Link>
         </div>
@@ -51,7 +51,7 @@ export const Layout = () => {
           <select
             value={i18n.language}
             onChange={(e) => i18n.changeLanguage(e.target.value)}
-            className="bg-transparent border border-input rounded-md px-3 py-1.5 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
+            className="bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500"
             aria-label="Language"
           >
             {LANGUAGES.map(({ code, label }) => (
