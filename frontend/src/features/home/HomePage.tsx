@@ -35,6 +35,9 @@ export const HomePage = () => {
           <Button variant="outline" asChild>
             <Link to="/login">{t("common.logIn")}</Link>
           </Button>
+          <Button variant="ghost" asChild>
+            <Link to="/dashboard">{t("dashboard.title")}</Link>
+          </Button>
         </div>
       </section>
 

@@ -5,8 +5,17 @@
     "signUp": "Sign up",
     "getStarted": "Get started"
   },
+  "theme": {
+    "toggleToDark": "Switch to dark mode",
+    "toggleToLight": "Switch to light mode"
+  },
   "layout": {
-    "appName": "AI Teacher"
+    "appName": "AI Teacher",
+    "userMenu": {
+      "account": "Account",
+      "logOut": "Log out",
+      "openMenu": "Open user menu"
+    }
   },
   "home": {
     "hero": {
@@ -44,6 +53,28 @@
     "signup": {
       "title": "Sign up",
       "placeholder": "Placeholder — registration (teacher/student) will be implemented later."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of your classes and activity.",
+    "sidebar": {
+      "overview": "Overview"
+    },
+    "stats": {
+      "classes": "Classes",
+      "students": "Students",
+      "questionsThisWeek": "Questions this week"
+    },
+    "recent": {
+      "title": "Recent activity",
+      "description": "Latest activity in your classes.",
+      "item1": "New question in Introduction to Math",
+      "item2": "Student joined Algebra 101",
+      "item3": "Material uploaded to Physics",
+      "minutesAgo": "5 min ago",
+      "hoursAgo": "2 hours ago",
+      "yesterday": "Yesterday"
     }
   }
 }
