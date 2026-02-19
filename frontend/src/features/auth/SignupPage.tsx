@@ -22,7 +22,7 @@ export const SignupPage = () => {
     try {
       const data = await signUp.mutateAsync({ email, password, displayName: displayName.trim() || undefined });
       if (data.session) {
-        navigate("/dashboard", { replace: true });
+        navigate("/account", { replace: true });
       } else {
         setConfirmEmailMessage(t("auth.signup.confirmEmail"));
       }

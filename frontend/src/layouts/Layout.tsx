@@ -26,7 +26,8 @@ const MoonIcon = ({ className }: { className?: string }) => (
 export const Layout = () => {
   const { t, i18n } = useTranslation();
   const { resolvedTheme, cycleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isTeacher = profile?.role === "teacher";
 
   return (
     <div className="min-h-screen w-full flex flex-col">
@@ -35,9 +36,16 @@ export const Layout = () => {
           <Link to="/" className="font-semibold text-slate-900 dark:text-slate-100 no-underline hover:text-inherit">
             {t("layout.appName")}
           </Link>
-          <Link to="/dashboard" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
-            {t("dashboard.title")}
-          </Link>
+          {user && isTeacher && (
+            <>
+              <Link to="/dashboard" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                {t("dashboard.title")}
+              </Link>
+              <Link to="/admin" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                {t("layout.admin")}
+              </Link>
+            </>
+          )}
           {!user && (
             <Link to="/login" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
               {t("common.logIn")}

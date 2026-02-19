@@ -96,3 +96,37 @@ The frontend already has a Supabase client helper at `frontend/src/lib/supabase.
   - Chat messages readable by the owning user (and later you can add class-scoped rules for RAG).
 
 If you want, we can wire Auth into the existing Login/Signup pages and load the current user into the layout next.
+
+---
+
+## 7. Teacher accounts and Admin (Edge Function)
+
+- **Dashboard** is only available to users with role **teacher**. Students are redirected to Account if they try to open `/dashboard`.
+- **Teachers** are created via the **Admin** page (`/admin`), which is only visible and accessible to existing teachers. Normal signup (`/signup`) always creates **student** accounts.
+
+**Deploy the create-teacher Edge Function**
+
+From the project root, with the [Supabase CLI](https://supabase.com/docs/guides/cli) installed and linked to your project:
+
+```bash
+supabase functions deploy create-teacher
+```
+
+The function checks that the caller is a teacher (via JWT), then creates a new auth user and sets their profile role to `teacher`. The frontend calls it from the Admin page when a teacher submits the “Register new teacher” form.
+
+**Creating the first teacher**
+
+Because only teachers can access `/admin`, the first teacher must be created outside the app:
+
+1. Sign up a user via the normal **Sign up** page (they get role `student`).
+2. In Supabase Dashboard → **SQL Editor**, run:
+
+```sql
+UPDATE public.profiles
+SET role = 'teacher'
+WHERE id = 'THE_USER_UUID_HERE';
+```
+
+(Replace `THE_USER_UUID_HERE` with the user’s id from **Authentication** → **Users** in the dashboard.)
+
+3. That user can then log in, open **Admin**, and register more teachers.

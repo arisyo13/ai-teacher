@@ -8,6 +8,7 @@ export interface Profile {
   id: string;
   role: Role;
   display_name: string | null;
+  created_at: string;
 }
 
 export const authKeys = {
@@ -23,7 +24,7 @@ export type AuthSession = {
 async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, role, display_name")
+    .select("id, role, display_name, created_at")
     .eq("id", userId)
     .single();
   if (error) {
@@ -89,5 +90,28 @@ export function useSignOutMutation() {
     onSuccess: () => {
       queryClient.setQueryData(authKeys.session(), null);
     },
+  });
+}
+
+export async function createTeacherAccount(params: {
+  email: string;
+  password: string;
+  displayName?: string;
+}): Promise<{ id: string; email: string | undefined }> {
+  const { data, error } = await supabase.functions.invoke("create-teacher", {
+    body: {
+      email: params.email.trim(),
+      password: params.password,
+      displayName: params.displayName?.trim() || undefined,
+    },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return { id: data.id, email: data.email };
+}
+
+export function useCreateTeacherMutation() {
+  return useMutation({
+    mutationFn: createTeacherAccount,
   });
 }

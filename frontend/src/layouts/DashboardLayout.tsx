@@ -50,7 +50,7 @@ export const DashboardLayout = () => {
   return (
     <div className="-ml-6 -my-6 flex min-h-[calc(100vh-4.5rem)] w-[calc(100%+1.5rem)] flex-1">
       {/* Left sidebar — sticky so it stays visible when scrolling content */}
-      <aside className="sticky top-[4.5rem] flex h-[calc(100vh-4.5rem)] w-56 shrink-0 flex-col border-r border-slate-200/60 dark:border-slate-700/50 bg-slate-100/80 dark:bg-slate-800/50">
+      <aside className="sticky top-18 flex h-[calc(100vh-4.5rem)] w-56 shrink-0 flex-col border-r border-slate-200/60 dark:border-slate-700/50 bg-slate-100/80 dark:bg-slate-800/50">
         {/* Top: dashboard nav */}
         <nav className="p-4">
           <Link
