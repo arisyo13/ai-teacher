@@ -15,7 +15,7 @@ const AuthContext = createContext<AuthState | null>(null);
 
 const SESSION_STALE_TIME = 5 * 60 * 1000; // 5 min – session retained in cache
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const { data: session, isLoading, isFetching } = useQuery({
     queryKey: authKeys.session(),
@@ -48,10 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};
 
-export function useAuth(): AuthState {
+export const useAuth = (): AuthState => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
-}
+};

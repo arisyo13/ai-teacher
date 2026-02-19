@@ -7,9 +7,8 @@ export type Role = "owner" | "admin" | "teacher" | "student";
 /** Roles that can access dashboard and admin (create teachers, etc.) */
 export const DASHBOARD_ROLES: Role[] = ["owner", "admin", "teacher"];
 
-export function canAccessDashboard(role: Role | null | undefined): boolean {
-  return role != null && DASHBOARD_ROLES.includes(role);
-}
+export const canAccessDashboard = (role: Role | null | undefined): boolean =>
+  role != null && DASHBOARD_ROLES.includes(role);
 
 export interface Profile {
   id: string;
@@ -28,7 +27,7 @@ export type AuthSession = {
   profile: Profile | null;
 };
 
-async function fetchProfile(userId: string): Promise<Profile | null> {
+const fetchProfile = async (userId: string): Promise<Profile | null> => {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, role, display_name, created_at")
@@ -39,16 +38,16 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
     return null;
   }
   return data as Profile;
-}
+};
 
-export async function fetchAuthSession(): Promise<AuthSession | null> {
+export const fetchAuthSession = async (): Promise<AuthSession | null> => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return null;
   const profile = await fetchProfile(session.user.id);
   return { user: session.user, profile };
-}
+};
 
-export function useLoginMutation() {
+export const useLoginMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
@@ -60,9 +59,9 @@ export function useLoginMutation() {
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
   });
-}
+};
 
-export function useSignUpMutation() {
+export const useSignUpMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -88,9 +87,9 @@ export function useSignUpMutation() {
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
   });
-}
+};
 
-export function useSignOutMutation() {
+export const useSignOutMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => supabase.auth.signOut(),
@@ -98,13 +97,13 @@ export function useSignOutMutation() {
       queryClient.setQueryData(authKeys.session(), null);
     },
   });
-}
+};
 
-export async function createTeacherAccount(params: {
+export const createTeacherAccount = async (params: {
   email: string;
   password: string;
   displayName?: string;
-}): Promise<{ id: string; email: string | undefined }> {
+}): Promise<{ id: string; email: string | undefined }> => {
   const { data, error } = await supabase.functions.invoke("create-teacher", {
     body: {
       email: params.email.trim(),
@@ -115,10 +114,9 @@ export async function createTeacherAccount(params: {
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
   return { id: data.id, email: data.email };
-}
+};
 
-export function useCreateTeacherMutation() {
-  return useMutation({
+export const useCreateTeacherMutation = () =>
+  useMutation({
     mutationFn: createTeacherAccount,
   });
-}

@@ -3,22 +3,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/AuthContext";
 import type { Role } from "@/queries/auth";
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, {
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-}
 
-function roleKey(role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleStudent" {
+const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleStudent" => {
   switch (role) {
     case "owner": return "roleOwner";
     case "admin": return "roleAdmin";
     case "teacher": return "roleTeacher";
     default: return "roleStudent";
   }
-}
+};
 
 export const AccountPage = () => {
   const { t } = useTranslation();

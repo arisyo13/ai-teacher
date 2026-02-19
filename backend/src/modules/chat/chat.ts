@@ -2,10 +2,10 @@ import type { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { StreamChunk } from "shared";
 
 // Placeholder: real implementation will use RAG over subject content and stream tokens.
-export async function chatModule(
+export const chatModule = async (
   app: FastifyInstance,
   _opts: FastifyPluginOptions
-) {
+) => {
   app.post<{
     Body: { message: string; subjectId?: string; classId?: string };
   }>("/chat/stream", async (request, reply) => {
