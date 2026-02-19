@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { useAuth } from "@/contexts/AuthContext";
+import { getDisplayName } from "@/queries/auth";
 import { cn } from "@/lib/utils";
 
 export const DashboardLayout = () => {
@@ -21,7 +22,7 @@ export const DashboardLayout = () => {
   const { user, profile, loading, signOut } = useAuth();
   const isOverview = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
 
-  const displayName = profile?.display_name?.trim() || user?.email?.split("@")[0] || t("layout.userMenu.account");
+  const displayName = getDisplayName(profile, user?.email?.split("@")[0] ?? t("layout.userMenu.account"));
   const email = user?.email ?? "";
 
   return (

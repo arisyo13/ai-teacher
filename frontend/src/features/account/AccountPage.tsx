@@ -23,8 +23,12 @@ export const AccountPage = () => {
       value: user?.email ?? "—",
     },
     {
-      label: t("account.profile.displayName"),
-      value: profile?.display_name ?? "—",
+      label: t("account.profile.firstName"),
+      value: profile?.first_name ?? "—",
+    },
+    {
+      label: t("account.profile.lastName"),
+      value: profile?.last_name ?? "—",
     },
     {
       label: t("account.profile.role"),

@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
-import { canAccessDashboard } from "@/queries/auth";
+import { canAccessDashboard, getDisplayName } from "@/queries/auth";
 
 const nextLanguage = (current: string): "en" | "el" =>
   current.startsWith("el") ? "en" : "el";
@@ -24,7 +24,7 @@ export const Layout = () => {
   const { resolvedTheme, cycleTheme } = useTheme();
   const { user, profile, loading, signOut } = useAuth();
   const showDashboardLinks = canAccessDashboard(profile?.role) && !loading;
-  const displayName = profile?.display_name?.trim() || user?.email?.split("@")[0] || t("layout.userMenu.account");
+  const displayName = getDisplayName(profile, user?.email?.split("@")[0] ?? t("layout.userMenu.account"));
   const email = user?.email ?? "";
 
   return (

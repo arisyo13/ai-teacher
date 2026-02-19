@@ -13,9 +13,22 @@ export const canAccessDashboard = (role: Role | null | undefined): boolean =>
 export interface Profile {
   id: string;
   role: Role;
-  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   created_at: string;
 }
+
+/** Full display name from profile (or fallback). */
+export const getDisplayName = (
+  profile: Profile | null | undefined,
+  fallback: string
+): string => {
+  if (!profile) return fallback;
+  const first = profile.first_name?.trim() ?? "";
+  const last = profile.last_name?.trim() ?? "";
+  const full = [first, last].filter(Boolean).join(" ");
+  return full || fallback;
+};
 
 export const authKeys = {
   all: ["auth"] as const,
@@ -30,7 +43,7 @@ export type AuthSession = {
 const fetchProfile = async (userId: string): Promise<Profile | null> => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, role, display_name, created_at")
+    .select("id, role, first_name, last_name, created_at")
     .eq("id", userId)
     .single();
   if (error) {
@@ -67,18 +80,23 @@ export const useSignUpMutation = () => {
     mutationFn: async ({
       email,
       password,
-      displayName,
+      firstName,
+      lastName,
     }: {
       email: string;
       password: string;
-      displayName?: string;
+      firstName: string;
+      lastName: string;
     }) => {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
-      if (data.user && displayName?.trim()) {
+      if (data.user) {
         await supabase
           .from("profiles")
-          .update({ display_name: displayName.trim() })
+          .update({
+            first_name: firstName.trim() || null,
+            last_name: lastName.trim() || null,
+          })
           .eq("id", data.user.id);
       }
       return data;
@@ -102,13 +120,15 @@ export const useSignOutMutation = () => {
 export const createTeacherAccount = async (params: {
   email: string;
   password: string;
-  displayName?: string;
+  firstName: string;
+  lastName: string;
 }): Promise<{ id: string; email: string | undefined }> => {
   const { data, error } = await supabase.functions.invoke("create-teacher", {
     body: {
       email: params.email.trim(),
       password: params.password,
-      displayName: params.displayName?.trim() || undefined,
+      firstName: params.firstName.trim() || undefined,
+      lastName: params.lastName.trim() || undefined,
     },
   });
   if (error) throw error;

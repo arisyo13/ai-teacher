@@ -12,7 +12,8 @@ export const SignupPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [confirmEmailMessage, setConfirmEmailMessage] = useState<string | null>(null);
   const signUp = useSignUpMutation();
 
@@ -20,7 +21,7 @@ export const SignupPage = () => {
     e.preventDefault();
     setConfirmEmailMessage(null);
     try {
-      const data = await signUp.mutateAsync({ email, password, displayName: displayName.trim() || undefined });
+      const data = await signUp.mutateAsync({ email, password, firstName: firstName.trim(), lastName: lastName.trim() });
       if (data.session) {
         navigate("/account", { replace: true });
       } else {
@@ -70,14 +71,27 @@ export const SignupPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="displayName">{t("auth.signup.displayName")}</Label>
+              <Label htmlFor="firstName">{t("auth.signup.firstName")}</Label>
               <Input
-                id="displayName"
+                id="firstName"
                 type="text"
-                placeholder={t("auth.signup.displayNamePlaceholder")}
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                autoComplete="name"
+                placeholder={t("auth.signup.firstNamePlaceholder")}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">{t("auth.signup.lastName")}</Label>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder={t("auth.signup.lastNamePlaceholder")}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
+                required
               />
             </div>
           </CardContent>
