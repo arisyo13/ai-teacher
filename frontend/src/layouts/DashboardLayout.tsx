@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 const UserIcon = ({ className }: { className?: string }) => (
@@ -36,18 +37,20 @@ const LayoutDashboardIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const DUMMY_USER = { name: "Demo User", email: "user@example.com" };
-
 export const DashboardLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, profile, loading, signOut } = useAuth();
   const isOverview = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+
+  const displayName = profile?.display_name?.trim() || user?.email?.split("@")[0] || t("layout.userMenu.account");
+  const email = user?.email ?? "";
 
   return (
     <div className="-ml-6 -my-6 flex min-h-[calc(100vh-4.5rem)] w-[calc(100%+1.5rem)] flex-1">
       {/* Left sidebar — sticky so it stays visible when scrolling content */}
-      <aside className="sticky top-[4.5rem] flex h-[calc(100vh-4.5rem)] w-56 shrink-0 flex-col border-r border-slate-200/60 dark:border-slate-700/50 bg-slate-100/80 dark:bg-slate-800/50">
+      <aside className="sticky top-18 flex h-[calc(100vh-4.5rem)] w-56 shrink-0 flex-col border-r border-slate-200/60 dark:border-slate-700/50 bg-slate-100/80 dark:bg-slate-800/50">
         {/* Top: dashboard nav */}
         <nav className="p-4">
           <Link
@@ -69,47 +72,58 @@ export const DashboardLayout = () => {
 
         {/* Bottom left: user menu */}
         <div className="border-t border-slate-200/60 dark:border-slate-700/50 p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex w-full items-center gap-3 px-3 py-2 h-auto font-normal"
-                aria-label={t("layout.userMenu.openMenu")}
-              >
-                <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarFallback className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
-                    {DUMMY_USER.name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1 text-left">
-                  <p className="truncate text-sm font-medium">{DUMMY_USER.name}</p>
-                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">{DUMMY_USER.email}</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="top" className="w-56">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{DUMMY_USER.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{DUMMY_USER.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/account" className="flex items-center gap-2 cursor-pointer">
-                  <UserIcon />
-                  {t("layout.userMenu.account")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                onClick={() => navigate("/login")}
-              >
-                <LogOutIcon />
-                {t("layout.userMenu.logOut")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {loading ? (
+            <div className="h-[52px] animate-pulse rounded-lg bg-slate-200/50 dark:bg-slate-700/50" />
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex w-full items-center gap-3 px-3 py-2 h-auto font-normal"
+                  aria-label={t("layout.userMenu.openMenu")}
+                >
+                  <Avatar className="h-9 w-9 shrink-0">
+                    <AvatarFallback className="text-xs bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                      {displayName.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="truncate text-sm font-medium">{displayName}</p>
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{email}</p>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="top" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{displayName}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/account" className="flex items-center gap-2 cursor-pointer">
+                    <UserIcon />
+                    {t("layout.userMenu.account")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                  onClick={async () => {
+                    await signOut();
+                    navigate("/login");
+                  }}
+                >
+                  <LogOutIcon />
+                  {t("layout.userMenu.logOut")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" className="w-full justify-center" asChild>
+              <Link to="/login">{t("common.logIn")}</Link>
+            </Button>
+          )}
         </div>
       </aside>
 
