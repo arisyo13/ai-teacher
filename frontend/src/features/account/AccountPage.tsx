@@ -11,8 +11,13 @@ function formatDate(iso: string) {
   });
 }
 
-function roleKey(role: Role): "roleTeacher" | "roleStudent" {
-  return role === "teacher" ? "roleTeacher" : "roleStudent";
+function roleKey(role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleStudent" {
+  switch (role) {
+    case "owner": return "roleOwner";
+    case "admin": return "roleAdmin";
+    case "teacher": return "roleTeacher";
+    default: return "roleStudent";
+  }
 }
 
 export const AccountPage = () => {

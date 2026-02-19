@@ -77,6 +77,8 @@
       "displayName": "Display name",
       "role": "Role",
       "memberSince": "Member since",
+      "roleOwner": "Owner",
+      "roleAdmin": "Admin",
       "roleTeacher": "Teacher",
       "roleStudent": "Student"
     }

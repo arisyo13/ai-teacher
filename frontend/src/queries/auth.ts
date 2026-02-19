@@ -2,7 +2,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
-export type Role = "teacher" | "student";
+export type Role = "owner" | "admin" | "teacher" | "student";
+
+/** Roles that can access dashboard and admin (create teachers, etc.) */
+export const DASHBOARD_ROLES: Role[] = ["owner", "admin", "teacher"];
+
+export function canAccessDashboard(role: Role | null | undefined): boolean {
+  return role != null && DASHBOARD_ROLES.includes(role);
+}
 
 export interface Profile {
   id: string;

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
+import { canAccessDashboard } from "@/queries/auth";
 import { cn } from "@/lib/utils";
 
 function nextLanguage(current: string): "en" | "el" {
@@ -27,7 +28,7 @@ export const Layout = () => {
   const { t, i18n } = useTranslation();
   const { resolvedTheme, cycleTheme } = useTheme();
   const { user, profile, loading } = useAuth();
-  const isTeacher = profile?.role === "teacher";
+  const showDashboardLinks = canAccessDashboard(profile?.role) && !loading;
 
   return (
     <div className="min-h-screen w-full flex flex-col">
@@ -36,7 +37,7 @@ export const Layout = () => {
           <Link to="/" className="font-semibold text-slate-900 dark:text-slate-100 no-underline hover:text-inherit">
             {t("layout.appName")}
           </Link>
-          {user && isTeacher && !loading &&(
+          {user && showDashboardLinks && (
             <>
               <Link to="/dashboard" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
                 {t("dashboard.title")}

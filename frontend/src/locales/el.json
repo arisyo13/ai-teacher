@@ -77,6 +77,8 @@
       "displayName": "Εμφανιζόμενο όνομα",
       "role": "Ρόλος",
       "memberSince": "Μέλος από",
+      "roleOwner": "Ιδιοκτήτης",
+      "roleAdmin": "Διαχειριστής",
       "roleTeacher": "Δάσκαλος",
       "roleStudent": "Μαθητής"
     }

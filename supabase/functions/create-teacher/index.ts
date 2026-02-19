@@ -43,9 +43,10 @@ Deno.serve(async (req) => {
       .eq("id", caller.id)
       .single();
 
-    if (callerProfile?.role !== "teacher") {
+    const allowedRoles = ["teacher", "admin", "owner"];
+    if (!callerProfile?.role || !allowedRoles.includes(callerProfile.role)) {
       return new Response(
-        JSON.stringify({ error: "Only teachers can create teacher accounts" }),
+        JSON.stringify({ error: "Only teachers, admins, or owners can create teacher accounts" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
