@@ -34,7 +34,7 @@ export const SignupPage = () => {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md min-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">{t("auth.signup.title")}</CardTitle>
           <CardDescription>{t("auth.signup.description")}</CardDescription>
