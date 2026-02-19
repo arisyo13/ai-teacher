@@ -65,7 +65,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: github-pages
+    environment: production
     permissions:
       contents: write
     steps:
