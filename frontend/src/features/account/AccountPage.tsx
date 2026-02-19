@@ -2,13 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Role } from "@/queries/auth";
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+import { formatDate } from "@/services/time";
 
 const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleStudent" => {
   switch (role) {
@@ -22,6 +16,25 @@ const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleS
 export const AccountPage = () => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
+
+  const userDetails = [
+    {
+      label: t("account.profile.email"),
+      value: user?.email ?? "—",
+    },
+    {
+      label: t("account.profile.displayName"),
+      value: profile?.display_name ?? "—",
+    },
+    {
+      label: t("account.profile.role"),
+      value: profile ? t(`account.profile.${roleKey(profile.role)}`) : "—",
+    },
+    {
+      label: t("account.profile.memberSince"),
+      value: profile?.created_at ? formatDate(profile.created_at) : "—",
+    },
+  ]
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
@@ -40,38 +53,14 @@ export const AccountPage = () => {
           <CardDescription>{t("account.profile.description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("account.profile.email")}
-            </p>
-            <p className="text-slate-900 dark:text-slate-100">{user?.email ?? "—"}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("account.profile.displayName")}
-            </p>
-            <p className="text-slate-900 dark:text-slate-100">
-              {profile?.display_name ?? "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {t("account.profile.role")}
-            </p>
-            <p className="text-slate-900 dark:text-slate-100">
-              {profile ? t(`account.profile.${roleKey(profile.role)}`) : "—"}
-            </p>
-          </div>
-          {profile?.created_at && (
-            <div>
+          {userDetails.map(({ label, value }) => (
+            <div key={label}>
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                {t("account.profile.memberSince")}
+                {label}
               </p>
-              <p className="text-slate-900 dark:text-slate-100">
-                {formatDate(profile.created_at)}
-              </p>
+              <p className="text-slate-900 dark:text-slate-100">{value}</p>
             </div>
-          )}
+          ))}
         </CardContent>
       </Card>
     </div>
