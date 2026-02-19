@@ -1,33 +1,31 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Icon } from "@/components/ui/icon";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { canAccessDashboard } from "@/queries/auth";
-import { cn } from "@/lib/utils";
 
 const nextLanguage = (current: string): "en" | "el" =>
   current.startsWith("el") ? "en" : "el";
 
-const SunIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("shrink-0", className)} aria-hidden>
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
-  </svg>
-);
-
-const MoonIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("shrink-0", className)} aria-hidden>
-    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-  </svg>
-);
-
-
 export const Layout = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { resolvedTheme, cycleTheme } = useTheme();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const showDashboardLinks = canAccessDashboard(profile?.role) && !loading;
+  const displayName = profile?.display_name?.trim() || user?.email?.split("@")[0] || t("layout.userMenu.account");
+  const email = user?.email ?? "";
 
   return (
     <div className="min-h-screen w-full flex flex-col">
@@ -56,6 +54,15 @@ export const Layout = () => {
           <Button
             variant="ghost"
             size="icon"
+            icon={resolvedTheme === "dark" ? "sun" : "moon"}
+            iconSize={18}
+            onClick={cycleTheme}
+            aria-label={resolvedTheme === "dark" ? t("theme.toggleToLight") : t("theme.toggleToDark")}
+            className="h-9 w-9"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => i18n.changeLanguage(nextLanguage(i18n.language))}
             aria-label={t("layout.languageSwitch")}
             className="h-9 w-9 min-w-9 font-medium text-sm"
@@ -63,15 +70,49 @@ export const Layout = () => {
           >
             {i18n.language.startsWith("el") ? "EN" : "ΕΛ"}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={cycleTheme}
-            aria-label={resolvedTheme === "dark" ? t("theme.toggleToLight") : t("theme.toggleToDark")}
-            className="h-9 w-9"
-          >
-            {resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />}
-          </Button>
+          {user && !loading && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full h-9 w-9"
+                  aria-label={t("layout.userMenu.openMenu")}
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="text-sm bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                      {displayName.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="bottom" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium truncate">{displayName}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/account" className="flex items-center gap-2 cursor-pointer">
+                    <Icon name="user" size={16} />
+                    {t("layout.userMenu.account")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                  onClick={async () => {
+                    await signOut();
+                    navigate("/login");
+                  }}
+                >
+                  <Icon name="log-out" size={16} />
+                  {t("layout.userMenu.logOut")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </header>
       <main className="flex-1 w-full p-6 flex justify-center">
