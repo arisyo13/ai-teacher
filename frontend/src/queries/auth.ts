@@ -10,6 +10,10 @@ export const DASHBOARD_ROLES: Role[] = ["owner", "admin", "teacher"];
 export const canAccessDashboard = (role: Role | null | undefined): boolean =>
   role != null && DASHBOARD_ROLES.includes(role);
 
+/** Only owner can manage all users (list and edit any profile). */
+export const isOwner = (role: Role | null | undefined): boolean =>
+  role === "owner";
+
 export interface Profile {
   id: string;
   role: Role;

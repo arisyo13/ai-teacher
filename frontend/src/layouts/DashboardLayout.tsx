@@ -12,7 +12,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDisplayName } from "@/queries/auth";
+import { getDisplayName, isOwner } from "@/queries/auth";
 import { cn } from "@/lib/utils";
 
 export const DashboardLayout = () => {
@@ -21,6 +21,9 @@ export const DashboardLayout = () => {
   const location = useLocation();
   const { user, profile, loading, signOut } = useAuth();
   const isOverview = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+  const isSubjects = location.pathname.startsWith("/dashboard/subjects");
+  const isClasses = location.pathname.startsWith("/dashboard/classes");
+  const isUsers = location.pathname.startsWith("/dashboard/users");
 
   const displayName = getDisplayName(profile, user?.email?.split("@")[0] ?? t("layout.userMenu.account"));
   const email = user?.email ?? "";
@@ -43,6 +46,44 @@ export const DashboardLayout = () => {
             <Icon name="layout-dashboard" size={18} />
             {t("dashboard.sidebar.overview")}
           </Link>
+          <Link
+            to="/dashboard/subjects"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isSubjects
+                ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                : "text-slate-500 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100"
+            )}
+          >
+            <Icon name="menu-book" size={18} />
+            {t("dashboard.sidebar.subjects")}
+          </Link>
+          <Link
+            to="/dashboard/classes"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isClasses
+                ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                : "text-slate-500 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100"
+            )}
+          >
+            <Icon name="school" size={18} />
+            {t("dashboard.sidebar.classes")}
+          </Link>
+          {isOwner(profile?.role) && (
+            <Link
+              to="/dashboard/users"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isUsers
+                  ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100"
+              )}
+            >
+              <Icon name="people" size={18} />
+              {t("dashboard.sidebar.users")}
+            </Link>
+          )}
         </nav>
 
         {/* Spacer so user block sits at bottom */}

@@ -5,6 +5,9 @@ import {
   MdDarkMode,
   MdLightMode,
   MdPerson,
+  MdSchool,
+  MdMenuBook,
+  MdPeople,
 } from "react-icons/md";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +17,9 @@ const ICON_REGISTRY = {
   moon: MdDarkMode,
   sun: MdLightMode,
   user: MdPerson,
+  school: MdSchool,
+  "menu-book": MdMenuBook,
+  people: MdPeople,
 } as const satisfies Record<string, IconType>;
 
 export type IconName = keyof typeof ICON_REGISTRY;

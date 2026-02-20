@@ -3,7 +3,8 @@
     "appName": "AI Teacher",
     "logIn": "Log in",
     "signUp": "Sign up",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "cancel": "Cancel"
   },
   "theme": {
     "toggleToDark": "Switch to dark mode",
@@ -94,6 +95,13 @@
   "admin": {
     "title": "Admin",
     "subtitle": "Create and manage teacher accounts. Only teachers can access this page.",
+    "users": {
+      "title": "All users",
+      "subtitle": "View and edit user profiles. Only the owner can access this page.",
+      "cardTitle": "Users",
+      "cardDescription": "Manage role, name, and birth date for each user.",
+      "empty": "No users found."
+    },
     "createTeacher": {
       "title": "Register new teacher",
       "description": "Create a new account with teacher role. The new teacher can sign in with the email and password you set.",
@@ -107,9 +115,13 @@
     "title": "Dashboard",
     "subtitle": "Overview of your classes and activity.",
     "sidebar": {
-      "overview": "Overview"
+      "overview": "Overview",
+      "subjects": "Subjects",
+      "classes": "Classes",
+      "users": "Users"
     },
     "stats": {
+      "subjects": "Subjects",
       "classes": "Classes",
       "students": "Students",
       "questionsThisWeek": "Questions this week"
@@ -123,6 +135,52 @@
       "minutesAgo": "5 min ago",
       "hoursAgo": "2 hours ago",
       "yesterday": "Yesterday"
+    },
+    "subjects": {
+      "title": "Subjects & classes",
+      "description": "Create and manage subjects, then add classes to each subject.",
+      "signInRequired": "You need to sign in to manage content.",
+      "addSubject": "Add subject",
+      "subjectName": "Subject name",
+      "subjectNamePlaceholder": "e.g. Mathematics",
+      "subjectDescription": "Description",
+      "subjectDescriptionPlaceholder": "Optional short description",
+      "create": "Create",
+      "creating": "Creating…",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDeleteSubject": "Delete this subject and all its classes?",
+      "loading": "Loading…",
+      "empty": "No subjects yet. Add one above."
+    },
+    "subjectsPage": {
+      "title": "Subjects",
+      "subtitle": "Manage your subjects. Add classes to each subject from the Classes page.",
+      "cardTitle": "Your subjects",
+      "cardDescription": "Subjects you teach. Create subjects here, then add classes from the Classes page.",
+      "empty": "No subjects yet. Add one above."
+    },
+    "classes": {
+      "title": "Classes",
+      "addClass": "Add class",
+      "className": "Class name",
+      "classNamePlaceholder": "e.g. Algebra 101",
+      "create": "Create",
+      "creating": "Creating…",
+      "empty": "No classes in this subject.",
+      "confirmDeleteClass": "Delete this class?"
+    },
+    "classesPage": {
+      "title": "Classes",
+      "subtitle": "All your classes across subjects.",
+      "cardTitle": "Your classes",
+      "cardDescription": "Classes you teach, grouped by subject on the overview.",
+      "addClass": "Add class",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Select subject",
+      "noSubjects": "Create a subject first on the Overview.",
+      "empty": "No classes yet. Create subjects and add classes from the Overview."
     }
   }
 }
