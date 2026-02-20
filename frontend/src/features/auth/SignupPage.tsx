@@ -14,6 +14,7 @@ export const SignupPage = () => {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [confirmEmailMessage, setConfirmEmailMessage] = useState<string | null>(null);
   const signUp = useSignUpMutation();
 
@@ -21,7 +22,13 @@ export const SignupPage = () => {
     e.preventDefault();
     setConfirmEmailMessage(null);
     try {
-      const data = await signUp.mutateAsync({ email, password, firstName: firstName.trim(), lastName: lastName.trim() });
+      const data = await signUp.mutateAsync({
+        email,
+        password,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        birthDate,
+      });
       if (data.session) {
         navigate("/account", { replace: true });
       } else {
@@ -91,6 +98,16 @@ export const SignupPage = () => {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 autoComplete="family-name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="birthDate">{t("auth.signup.birthDate")}</Label>
+              <Input
+                id="birthDate"
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
                 required
               />
             </div>

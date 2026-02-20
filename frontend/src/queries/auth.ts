@@ -15,6 +15,7 @@ export interface Profile {
   role: Role;
   first_name: string | null;
   last_name: string | null;
+  birth_date: string | null; // ISO date YYYY-MM-DD
   created_at: string;
 }
 
@@ -43,7 +44,7 @@ export type AuthSession = {
 const fetchProfile = async (userId: string): Promise<Profile | null> => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, role, first_name, last_name, created_at")
+    .select("id, role, first_name, last_name, birth_date, created_at")
     .eq("id", userId)
     .single();
   if (error) {
@@ -82,11 +83,13 @@ export const useSignUpMutation = () => {
       password,
       firstName,
       lastName,
+      birthDate,
     }: {
       email: string;
       password: string;
       firstName: string;
       lastName: string;
+      birthDate: string; // YYYY-MM-DD
     }) => {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
@@ -96,6 +99,7 @@ export const useSignUpMutation = () => {
           .update({
             first_name: firstName.trim() || null,
             last_name: lastName.trim() || null,
+            birth_date: birthDate || null,
           })
           .eq("id", data.user.id);
       }
@@ -113,6 +117,34 @@ export const useSignOutMutation = () => {
     mutationFn: () => supabase.auth.signOut(),
     onSuccess: () => {
       queryClient.setQueryData(authKeys.session(), null);
+    },
+  });
+};
+
+/** Update current user's first and last name (account page). */
+export const useUpdateProfileMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      firstName,
+      lastName,
+      userId,
+    }: {
+      firstName: string;
+      lastName: string;
+      userId: string;
+    }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
+        })
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
   });
 };
