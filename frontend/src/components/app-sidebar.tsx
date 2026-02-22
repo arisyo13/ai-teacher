@@ -40,7 +40,7 @@ export function AppSidebar() {
   const email = user?.email ?? "";
 
   return (
-    <Sidebar collapsible="offcanvas" side="left">
+    <Sidebar collapsible="icon" side="left">
       <SidebarHeader className="border-b border-sidebar-border" />
       <SidebarContent>
         <SidebarGroup>
@@ -86,7 +86,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             {loading ? (
-              <div className="h-10 w-full animate-pulse rounded-md bg-sidebar-accent" />
+              <div className="h-10 w-full animate-pulse rounded-md bg-sidebar-accent group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9" />
             ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -94,16 +94,17 @@ export function AppSidebar() {
                     variant="ghost"
                     className={cn(
                       "flex w-full items-center gap-3 px-2 py-2 h-auto font-normal",
-                      "data-[active=true]:bg-sidebar-accent"
+                      "data-[active=true]:bg-sidebar-accent",
+                      "group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full"
                     )}
                     aria-label={t("layout.userMenu.openMenu")}
                   >
-                    <Avatar className="h-9 w-9 shrink-0">
+                    <Avatar className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-full">
                       <AvatarFallback className="text-xs bg-sidebar-accent text-sidebar-accent-foreground">
                         {displayName.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="min-w-0 flex-1 text-left">
+                    <div className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
                       <p className="truncate text-sm font-medium">{displayName}</p>
                       <p className="truncate text-xs text-sidebar-foreground/70">{email}</p>
                     </div>
@@ -136,8 +137,15 @@ export function AppSidebar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" className="w-full justify-center" asChild>
-                <Link to="/login">{t("common.logIn")}</Link>
+              <Button
+                variant="ghost"
+                className="w-full justify-center group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-full"
+                asChild
+              >
+                <Link to="/login" className="flex items-center gap-2 group-data-[collapsible=icon]:[&>span]:hidden">
+                  <Icon name="user" size={18} className="shrink-0" />
+                  <span>{t("common.logIn")}</span>
+                </Link>
               </Button>
             )}
           </SidebarMenuItem>
