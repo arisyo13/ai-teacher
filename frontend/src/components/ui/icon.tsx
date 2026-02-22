@@ -9,6 +9,8 @@ import {
   MdMenuBook,
   MdPeople,
   MdSearch,
+  MdClose,
+  MdMenu,
 } from "react-icons/md";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +24,8 @@ const ICON_REGISTRY = {
   "menu-book": MdMenuBook,
   people: MdPeople,
   search: MdSearch,
+  close: MdClose,
+  "panel-left": MdMenu,
 } as const satisfies Record<string, IconType>;
 
 export type IconName = keyof typeof ICON_REGISTRY;
