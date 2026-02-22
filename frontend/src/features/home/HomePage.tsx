@@ -1,8 +1,9 @@
+import { type FC } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
-export const HomePage = () => {
+export const HomePage: FC = () => {
   const { t } = useTranslation();
   const content = [
     {

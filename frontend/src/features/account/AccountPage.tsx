@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleS
   }
 };
 
-export const AccountPage = () => {
+export const AccountPage: FC = () => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name ?? "");

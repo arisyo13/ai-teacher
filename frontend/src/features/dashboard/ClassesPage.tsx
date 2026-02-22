@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubjectsQuery } from "@/queries/subjects";
 import { useClassesByTeacherQuery, useCreateClassMutation } from "@/queries/classes";
 
-export const ClassesPage = () => {
+export const ClassesPage: FC = () => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const teacherId = profile?.role && ["owner", "admin", "teacher"].includes(profile.role) ? user?.id : undefined;
@@ -38,7 +38,7 @@ export const ClassesPage = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.classesPage.title")}</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1">{t("dashboard.classesPage.subtitle")}</p>

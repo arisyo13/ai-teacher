@@ -147,7 +147,7 @@ export const DashboardLayout = () => {
       </aside>
 
       {/* Main content */}
-      <div className="min-w-0 flex-1 p-6 flex justify-center">
+      <div className="min-w-0 flex-1 p-6 flex justify-start">
         <Outlet />
       </div>
     </div>

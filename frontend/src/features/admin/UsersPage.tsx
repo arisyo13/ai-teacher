@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,7 @@ const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleS
 
 const ROLES: Role[] = ["owner", "admin", "teacher", "student"];
 
-export const UsersPage = () => {
+export const UsersPage: FC = () => {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const owner = isOwner(profile?.role);
@@ -30,12 +30,20 @@ export const UsersPage = () => {
   const { data: users = [], isLoading } = useAllProfilesWithEmailQuery(!!owner);
   const updateProfile = useUpdateUserProfileMutation();
 
+  const tableHeaders = [
+    { label: t("account.profile.email"), key: "email" },
+    { label: t("account.profile.firstName"), key: "first_name" },
+    { label: t("account.profile.lastName"), key: "last_name" },
+    { label: t("account.profile.birthDate"), key: "birth_date" },
+    { label: t("account.profile.role"), key: "role" },
+  ];
+
   if (!owner) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("admin.users.title")}</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1">{t("admin.users.subtitle")}</p>
@@ -56,11 +64,11 @@ export const UsersPage = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                    <th className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">{t("account.profile.email")}</th>
-                    <th className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">{t("account.profile.firstName")}</th>
-                    <th className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">{t("account.profile.lastName")}</th>
-                    <th className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">{t("account.profile.birthDate")}</th>
-                    <th className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">{t("account.profile.role")}</th>
+                    {tableHeaders.map(({ label, key }) => (
+                      <th key={key} className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">
+                        {label}
+                      </th>
+                    ))}
                     <th className="w-[100px]" />
                   </tr>
                 </thead>
@@ -84,12 +92,7 @@ export const UsersPage = () => {
   );
 };
 
-function UserRow({
-  user,
-  onUpdate,
-  roleKey,
-  t,
-}: {
+interface UserRowProps {
   user: ProfileWithEmail;
   onUpdate: (params: {
     id: string;
@@ -100,7 +103,14 @@ function UserRow({
   }) => Promise<unknown>;
   roleKey: (r: Role) => string;
   t: (key: string) => string;
-}) {
+}
+
+const UserRow: FC<UserRowProps> = ({
+  user,
+  onUpdate,
+  roleKey,
+  t,
+}) => {
   const [editing, setEditing] = useState(false);
   const [role, setRole] = useState<Role>(user.role);
   const [firstName, setFirstName] = useState(user.first_name ?? "");
@@ -139,14 +149,20 @@ function UserRow({
     ? formatDate(user.birth_date.includes("T") ? user.birth_date : `${user.birth_date}T00:00:00`)
     : "—";
 
+  const tableCells = [
+    { value: user.email ?? "—", key: "email" },
+    { value: user.first_name ?? "—", key: "first_name" },
+    { value: user.last_name ?? "—", key: "last_name" },
+    { value: birthDateDisplay, key: "birth_date" },
+    { value: t(`account.profile.${roleKey(user.role)}`), key: "role" },
+  ];
+
   return (
     <>
       <tr className="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-        <td className="px-4 py-3 text-slate-900 dark:text-slate-100">{user.email ?? "—"}</td>
-        <td className="px-4 py-3 text-slate-900 dark:text-slate-100">{user.first_name ?? "—"}</td>
-        <td className="px-4 py-3 text-slate-900 dark:text-slate-100">{user.last_name ?? "—"}</td>
-        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{birthDateDisplay}</td>
-        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{t(`account.profile.${roleKey(user.role)}`)}</td>
+        {tableCells.map(({ value, key }) => (
+          <td key={key} className="px-4 py-3 text-slate-900 dark:text-slate-100">{value}</td>
+        ))}
         <td className="px-4 py-3">
           {!editing ? (
             <Button type="button" variant="outline" size="sm" onClick={() => setEditing(true)}>
