@@ -1,3 +1,4 @@
+import type { FC } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { canAccessDashboard, getDisplayName } from "@/queries/auth";
 const nextLanguage = (current: string): "en" | "el" =>
   current.startsWith("el") ? "en" : "el";
 
-export const Layout = () => {
+export const Layout: FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { resolvedTheme, cycleTheme } = useTheme();
