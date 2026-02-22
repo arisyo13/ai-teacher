@@ -23,15 +23,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     staleTime: SESSION_STALE_TIME,
     gcTime: SESSION_STALE_TIME,
     retry: false,
-    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      const shouldInvalidate = event === "SIGNED_OUT" || event === "USER_UPDATED" || event === "PASSWORD_RECOVERY";
+
+      if (!shouldInvalidate) return;
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     });
+
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
@@ -50,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthState => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");

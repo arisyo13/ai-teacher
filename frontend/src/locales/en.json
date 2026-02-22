@@ -68,7 +68,8 @@
       "submitting": "Creating account…",
       "hasAccount": "Already have an account?",
       "signInLink": "Log in",
-      "confirmEmail": "Please check your email to confirm your account before signing in."
+      "confirmEmail": "Please check your email to confirm your account before signing in.",
+      "fillAllFields": "Please fill in all fields."
     }
   },
   "account": {

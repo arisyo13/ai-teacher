@@ -101,9 +101,9 @@ export const useSignUpMutation = () => {
         await supabase
           .from("profiles")
           .update({
-            first_name: firstName.trim() || null,
-            last_name: lastName.trim() || null,
-            birth_date: birthDate || null,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            birth_date: birthDate,
           })
           .eq("id", data.user.id);
       }

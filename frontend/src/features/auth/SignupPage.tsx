@@ -16,11 +16,24 @@ export const SignupPage: FC = () => {
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [confirmEmailMessage, setConfirmEmailMessage] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const signUp = useSignUpMutation();
+
+  const isFormValid =
+    email.trim() !== "" &&
+    password.length >= 6 &&
+    firstName.trim() !== "" &&
+    lastName.trim() !== "" &&
+    birthDate !== "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setConfirmEmailMessage(null);
+    setValidationError(null);
+    if (!isFormValid) {
+      setValidationError(t("auth.signup.fillAllFields"));
+      return;
+    }
     try {
       const data = await signUp.mutateAsync({
         email,
@@ -48,9 +61,9 @@ export const SignupPage: FC = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {(signUp.error || confirmEmailMessage) && (
+            {(signUp.error || confirmEmailMessage || validationError) && (
               <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-                {signUp.error?.message ?? confirmEmailMessage}
+                {signUp.error?.message ?? confirmEmailMessage ?? validationError}
               </p>
             )}
             <div className="space-y-2">
@@ -113,7 +126,7 @@ export const SignupPage: FC = () => {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={signUp.isPending}>
+            <Button type="submit" className="w-full" disabled={signUp.isPending || !isFormValid}>
               {signUp.isPending ? t("auth.signup.submitting") : t("auth.signup.submit")}
             </Button>
             <p className="text-center text-sm text-slate-500 dark:text-slate-400">
