@@ -101,7 +101,12 @@
       "subtitle": "View and edit user profiles. Only the owner can access this page.",
       "cardTitle": "Users",
       "cardDescription": "Manage role, name, and birth date for each user.",
-      "empty": "No users found."
+      "empty": "No users found.",
+      "search": "Search",
+      "searchPlaceholder": "Search by email or name…",
+      "filterByRole": "Filter by role",
+      "allRoles": "All roles",
+      "showingCount": "Showing {{count}} of {{total}} users"
     },
     "createTeacher": {
       "title": "Register new teacher",

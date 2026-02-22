@@ -1,12 +1,19 @@
-import { useState, type FC } from "react";
+import { useMemo, useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  getCoreRowModel,
+  useReactTable,
+  flexRender,
+  type ColumnDef,
+} from "@tanstack/react-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubjectsQuery } from "@/queries/subjects";
-import { useClassesByTeacherQuery, useCreateClassMutation } from "@/queries/classes";
+import { useClassesByTeacherQuery, useCreateClassMutation, type ClassRow } from "@/queries/classes";
 
 export const ClassesPage: FC = () => {
   const { t } = useTranslation();
@@ -21,7 +28,7 @@ export const ClassesPage: FC = () => {
   const [newClassName, setNewClassName] = useState("");
   const [newClassSubjectId, setNewClassSubjectId] = useState("");
 
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]));
+  const subjectMap = useMemo(() => new Map(subjects.map((s) => [s.id, s.name])), [subjects]);
   const isLoading = subjectsLoading || classesLoading;
 
   const handleAddClass = async (e: React.FormEvent) => {
@@ -36,6 +43,35 @@ export const ClassesPage: FC = () => {
       // Error via createClass.error
     }
   };
+
+  const columns = useMemo<ColumnDef<ClassRow>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: t("dashboard.classes.className"),
+        cell: ({ getValue }) => (
+          <span className="font-medium text-slate-900 dark:text-slate-100">{getValue() as string ?? "—"}</span>
+        ),
+      },
+      {
+        id: "subject",
+        header: t("dashboard.classesPage.subjectLabel"),
+        cell: ({ row }) => (
+          <span className="text-slate-600 dark:text-slate-400">
+            {subjectMap.get(row.original.subject_id) ?? "—"}
+          </span>
+        ),
+      },
+    ],
+    [t, subjectMap]
+  );
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns non-memoizable refs; safe for our usage
+  const table = useReactTable({
+    data: classes,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div className="w-full space-y-6">
@@ -113,33 +149,30 @@ export const ClassesPage: FC = () => {
                 <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.classesPage.empty")}</p>
               ) : (
                 <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                        <th className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">
-                          {t("dashboard.classes.className")}
-                        </th>
-                        <th className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">
-                          {t("dashboard.classesPage.subjectLabel")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {classes.map((c) => (
-                        <tr
-                          key={c.id}
-                          className="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
-                        >
-                          <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
-                            {c.name}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                            {subjectMap.get(c.subject_id) ?? "—"}
-                          </td>
-                        </tr>
+                  <Table>
+                    <TableHeader>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id} className="bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                          {headerGroup.headers.map((header) => (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                            </TableHead>
+                          ))}
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </>

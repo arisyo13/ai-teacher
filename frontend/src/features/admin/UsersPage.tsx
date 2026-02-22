@@ -1,7 +1,16 @@
-import { useState, type FC } from "react";
+import { Fragment, useCallback, useMemo, useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
+import {
+  getCoreRowModel,
+  useReactTable,
+  flexRender,
+  type ColumnDef,
+} from "@tanstack/react-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,21 +31,181 @@ const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleS
 
 const ROLES: Role[] = ["owner", "admin", "teacher", "student"];
 
+type SortKey = "email" | "first_name" | "last_name" | "birth_date" | "role";
+type SortDir = "asc" | "desc";
+
+function filterAndSortUsers(
+  users: ProfileWithEmail[],
+  searchQuery: string,
+  roleFilter: Role | "",
+  sortKey: SortKey,
+  sortDir: SortDir
+): ProfileWithEmail[] {
+  const q = searchQuery.trim().toLowerCase();
+  let list = users;
+  if (q) {
+    list = list.filter(
+      (u) =>
+        (u.email?.toLowerCase().includes(q) ?? false) ||
+        (u.first_name?.toLowerCase().includes(q) ?? false) ||
+        (u.last_name?.toLowerCase().includes(q) ?? false)
+    );
+  }
+  if (roleFilter) {
+    list = list.filter((u) => u.role === roleFilter);
+  }
+  const dir = sortDir === "asc" ? 1 : -1;
+  return [...list].sort((a, b) => {
+    let aVal: string | null = null;
+    let bVal: string | null = null;
+    if (sortKey === "email") {
+      aVal = a.email ?? "";
+      bVal = b.email ?? "";
+    } else if (sortKey === "first_name") {
+      aVal = a.first_name ?? "";
+      bVal = b.first_name ?? "";
+    } else if (sortKey === "last_name") {
+      aVal = a.last_name ?? "";
+      bVal = b.last_name ?? "";
+    } else if (sortKey === "birth_date") {
+      aVal = a.birth_date ?? "";
+      bVal = b.birth_date ?? "";
+    } else {
+      aVal = a.role;
+      bVal = b.role;
+    }
+    const cmp = aVal.localeCompare(bVal, undefined, { sensitivity: "base" });
+    return dir * cmp;
+  });
+}
+
 export const UsersPage: FC = () => {
   const { t } = useTranslation();
   const { profile } = useAuth();
   const owner = isOwner(profile?.role);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<Role | "">("");
+  const [sortKey, setSortKey] = useState<SortKey>("email");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   const { data: users = [], isLoading } = useAllProfilesWithEmailQuery(!!owner);
   const updateProfile = useUpdateUserProfileMutation();
 
-  const tableHeaders = [
-    { label: t("account.profile.email"), key: "email" },
-    { label: t("account.profile.firstName"), key: "first_name" },
-    { label: t("account.profile.lastName"), key: "last_name" },
-    { label: t("account.profile.birthDate"), key: "birth_date" },
-    { label: t("account.profile.role"), key: "role" },
-  ];
+  const filteredAndSortedUsers = useMemo(
+    () => filterAndSortUsers(users, searchQuery, roleFilter, sortKey, sortDir),
+    [users, searchQuery, roleFilter, sortKey, sortDir]
+  );
+
+  const handleSort = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }, [sortKey]);
+
+  const columns = useMemo<ColumnDef<ProfileWithEmail>[]>(
+    () => [
+      {
+        accessorKey: "email",
+        header: () => (
+          <button
+            type="button"
+            onClick={() => handleSort("email")}
+            className="hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1"
+          >
+            {t("account.profile.email")}
+            {sortKey === "email" && <span className="text-xs" aria-hidden>{sortDir === "asc" ? "↑" : "↓"}</span>}
+          </button>
+        ),
+        cell: ({ getValue }) => <span className="text-slate-900 dark:text-slate-100">{getValue() as string ?? "—"}</span>,
+      },
+      {
+        accessorKey: "first_name",
+        header: () => (
+          <button
+            type="button"
+            onClick={() => handleSort("first_name")}
+            className="hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1"
+          >
+            {t("account.profile.firstName")}
+            {sortKey === "first_name" && <span className="text-xs" aria-hidden>{sortDir === "asc" ? "↑" : "↓"}</span>}
+          </button>
+        ),
+        cell: ({ getValue }) => <span className="text-slate-900 dark:text-slate-100">{getValue() as string ?? "—"}</span>,
+      },
+      {
+        accessorKey: "last_name",
+        header: () => (
+          <button
+            type="button"
+            onClick={() => handleSort("last_name")}
+            className="hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1"
+          >
+            {t("account.profile.lastName")}
+            {sortKey === "last_name" && <span className="text-xs" aria-hidden>{sortDir === "asc" ? "↑" : "↓"}</span>}
+          </button>
+        ),
+        cell: ({ getValue }) => <span className="text-slate-900 dark:text-slate-100">{getValue() as string ?? "—"}</span>,
+      },
+      {
+        accessorKey: "birth_date",
+        header: () => (
+          <button
+            type="button"
+            onClick={() => handleSort("birth_date")}
+            className="hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1"
+          >
+            {t("account.profile.birthDate")}
+            {sortKey === "birth_date" && <span className="text-xs" aria-hidden>{sortDir === "asc" ? "↑" : "↓"}</span>}
+          </button>
+        ),
+        cell: ({ getValue }) => {
+          const raw = getValue() as string | null;
+          const display = raw
+            ? formatDate(raw.includes("T") ? raw : `${raw}T00:00:00`)
+            : "—";
+          return <span className="text-slate-900 dark:text-slate-100">{display}</span>;
+        },
+      },
+      {
+        accessorKey: "role",
+        header: () => (
+          <button
+            type="button"
+            onClick={() => handleSort("role")}
+            className="hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1"
+          >
+            {t("account.profile.role")}
+            {sortKey === "role" && <span className="text-xs" aria-hidden>{sortDir === "asc" ? "↑" : "↓"}</span>}
+          </button>
+        ),
+        cell: ({ getValue }) => (
+          <span className="text-slate-900 dark:text-slate-100">{t(`account.profile.${roleKey(getValue() as Role)}`)}</span>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => null,
+        cell: ({ row }) => (
+          <Button type="button" variant="outline" size="sm" onClick={() => setEditingId(row.original.id)}>
+            {t("dashboard.subjects.edit")}
+          </Button>
+        ),
+      },
+    ],
+    [t, sortKey, sortDir, handleSort]
+  );
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns non-memoizable refs; safe for our usage
+  const table = useReactTable({
+    data: filteredAndSortedUsers,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   if (!owner) {
     return <Navigate to="/dashboard" replace />;
@@ -54,36 +223,104 @@ export const UsersPage: FC = () => {
           <CardTitle>{t("admin.users.cardTitle")}</CardTitle>
           <CardDescription>{t("admin.users.cardDescription")}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="min-w-[200px] flex-1 max-w-sm">
+              <Label htmlFor="users-search" className="sr-only">
+                {t("admin.users.search")}
+              </Label>
+              <InputGroup>
+                <InputGroupInput
+                  id="users-search"
+                  type="search"
+                  placeholder={t("admin.users.searchPlaceholder")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <InputGroupAddon align="inline-start">
+                  <Icon name="search" size={18} className="text-slate-500 dark:text-slate-400" />
+                </InputGroupAddon>
+              </InputGroup>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="users-role-filter" className="text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                {t("admin.users.filterByRole")}
+              </Label>
+              <select
+                id="users-role-filter"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter((e.target.value || "") as Role | "")}
+                className="flex h-9 min-w-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-1 text-sm"
+              >
+                <option value="">{t("admin.users.allRoles")}</option>
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {t(`account.profile.${roleKey(r)}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {!isLoading && users.length > 0 && (
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {t("admin.users.showingCount", { count: filteredAndSortedUsers.length, total: users.length })}
+            </p>
+          )}
+
           {isLoading ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.subjects.loading")}</p>
           ) : users.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">{t("admin.users.empty")}</p>
           ) : (
             <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                    {tableHeaders.map(({ label, key }) => (
-                      <th key={key} className="text-left font-medium text-slate-600 dark:text-slate-400 px-4 py-3">
-                        {label}
-                      </th>
-                    ))}
-                    <th className="w-[100px]" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <UserRow
-                      key={user.id}
-                      user={user}
-                      onUpdate={updateProfile.mutateAsync}
-                      roleKey={roleKey}
-                      t={t}
-                    />
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id} className="bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id} className={header.id === "actions" ? "w-[100px]" : undefined}>
+                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-slate-500 dark:text-slate-400">
+                        {t("admin.users.empty")}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    table.getRowModel().rows.map((row) => (
+                      <Fragment key={row.id}>
+                        <TableRow>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                        {editingId === row.original.id && (
+                          <TableRow className="bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <TableCell colSpan={6}>
+                              <EditUserForm
+                                user={row.original}
+                                onUpdate={updateProfile.mutateAsync}
+                                onCancel={() => setEditingId(null)}
+                                roleKey={roleKey}
+                                t={t}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Fragment>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
@@ -92,7 +329,7 @@ export const UsersPage: FC = () => {
   );
 };
 
-interface UserRowProps {
+interface EditUserFormProps {
   user: ProfileWithEmail;
   onUpdate: (params: {
     id: string;
@@ -101,22 +338,16 @@ interface UserRowProps {
     last_name: string | null;
     birth_date: string | null;
   }) => Promise<unknown>;
+  onCancel: () => void;
   roleKey: (r: Role) => string;
   t: (key: string) => string;
 }
 
-const UserRow: FC<UserRowProps> = ({
-  user,
-  onUpdate,
-  roleKey,
-  t,
-}) => {
-  const [editing, setEditing] = useState(false);
+const EditUserForm: FC<EditUserFormProps> = ({ user, onUpdate, onCancel, roleKey, t }) => {
   const [role, setRole] = useState<Role>(user.role);
   const [firstName, setFirstName] = useState(user.first_name ?? "");
   const [lastName, setLastName] = useState(user.last_name ?? "");
   const [birthDate, setBirthDate] = useState(user.birth_date ?? "");
-
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -130,7 +361,7 @@ const UserRow: FC<UserRowProps> = ({
         last_name: lastName.trim() || null,
         birth_date: birthDate.trim() || null,
       });
-      setEditing(false);
+      onCancel();
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : String(err));
     }
@@ -142,91 +373,49 @@ const UserRow: FC<UserRowProps> = ({
     setFirstName(user.first_name ?? "");
     setLastName(user.last_name ?? "");
     setBirthDate(user.birth_date ?? "");
-    setEditing(false);
+    onCancel();
   };
 
-  const birthDateDisplay = user.birth_date
-    ? formatDate(user.birth_date.includes("T") ? user.birth_date : `${user.birth_date}T00:00:00`)
-    : "—";
-
-  const tableCells = [
-    { value: user.email ?? "—", key: "email" },
-    { value: user.first_name ?? "—", key: "first_name" },
-    { value: user.last_name ?? "—", key: "last_name" },
-    { value: birthDateDisplay, key: "birth_date" },
-    { value: t(`account.profile.${roleKey(user.role)}`), key: "role" },
-  ];
-
   return (
-    <>
-      <tr className="border-b border-slate-100 dark:border-slate-700/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-        {tableCells.map(({ value, key }) => (
-          <td key={key} className="px-4 py-3 text-slate-900 dark:text-slate-100">{value}</td>
-        ))}
-        <td className="px-4 py-3">
-          {!editing ? (
-            <Button type="button" variant="outline" size="sm" onClick={() => setEditing(true)}>
-              {t("dashboard.subjects.edit")}
-            </Button>
-          ) : null}
-        </td>
-      </tr>
-      {editing && (
-        <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700/50">
-          <td colSpan={6} className="px-4 py-3">
-            <form onSubmit={handleSave} className="flex flex-wrap items-end gap-4">
-              <div className="space-y-1 min-w-[140px]">
-                <Label className="text-xs">{t("account.profile.firstName")}</Label>
-                <Input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="h-8"
-                />
-              </div>
-              <div className="space-y-1 min-w-[140px]">
-                <Label className="text-xs">{t("account.profile.lastName")}</Label>
-                <Input
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="h-8"
-                />
-              </div>
-              <div className="space-y-1 min-w-[140px]">
-                <Label className="text-xs">{t("account.profile.birthDate")}</Label>
-                <Input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className="h-8"
-                />
-              </div>
-              <div className="space-y-1 min-w-[120px]">
-                <Label className="text-xs">{t("account.profile.role")}</Label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as Role)}
-                  className="flex h-8 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 text-sm"
-                >
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {t(`account.profile.${roleKey(r)}`)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" size="sm">{t("account.profile.save")}</Button>
-                <Button type="button" size="sm" variant="ghost" onClick={handleCancel}>
-                  {t("common.cancel")}
-                </Button>
-              </div>
-              {saveError && (
-                <p className="w-full text-sm text-red-600 dark:text-red-400">{saveError}</p>
-              )}
-            </form>
-          </td>
-        </tr>
-      )}
-    </>
+    <form onSubmit={handleSave} className="flex flex-wrap items-end gap-4">
+      <div className="space-y-1 min-w-[140px]">
+        <Label className="text-xs">{t("account.profile.firstName")}</Label>
+        <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-8" />
+      </div>
+      <div className="space-y-1 min-w-[140px]">
+        <Label className="text-xs">{t("account.profile.lastName")}</Label>
+        <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-8" />
+      </div>
+      <div className="space-y-1 min-w-[140px]">
+        <Label className="text-xs">{t("account.profile.birthDate")}</Label>
+        <Input
+          type="date"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+          className="h-8"
+        />
+      </div>
+      <div className="space-y-1 min-w-[120px]">
+        <Label className="text-xs">{t("account.profile.role")}</Label>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value as Role)}
+          className="flex h-8 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 text-sm"
+        >
+          {ROLES.map((r) => (
+            <option key={r} value={r}>
+              {t(`account.profile.${roleKey(r)}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex gap-2">
+        <Button type="submit" size="sm">{t("account.profile.save")}</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={handleCancel}>
+          {t("common.cancel")}
+        </Button>
+      </div>
+      {saveError && <p className="w-full text-sm text-red-600 dark:text-red-400">{saveError}</p>}
+    </form>
   );
-}
+};
