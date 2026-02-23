@@ -46,6 +46,17 @@ export async function createInvite(params: CreateInviteParams): Promise<CreateIn
   return { token, inviteLink };
 }
 
+export async function sendInviteEmail(inviteToken: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke("send-invite-email", {
+    body: { inviteToken },
+  });
+  if (error) {
+    console.log("sendInviteEmail error:", error);
+    throw error
+  };
+  if (data?.error) throw new Error(data.error);
+}
+
 export function useCreateInviteMutation() {
   const queryClient = useQueryClient();
   return useMutation({
