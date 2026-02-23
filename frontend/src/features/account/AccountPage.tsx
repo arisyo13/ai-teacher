@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Role } from "@/queries/auth";
 import { useUpdateProfileMutation } from "@/queries/auth";
+import { useInstitutionQuery, useUpdateInstitutionMutation } from "@/queries/institutions";
 import { formatDate } from "@/services/time";
 
 const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleStudent" => {
@@ -23,17 +24,32 @@ export const AccountPage: FC = () => {
   const { user, profile } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name ?? "");
   const [lastName, setLastName] = useState(profile?.last_name ?? "");
+  const [organisationName, setOrganisationName] = useState("");
   const updateProfile = useUpdateProfileMutation();
+  const { data: institution, isLoading: institutionLoading } = useInstitutionQuery(
+    profile?.role === "owner" ? profile?.institution_id ?? null : null
+  );
+  const updateInstitution = useUpdateInstitutionMutation();
 
   useEffect(() => {
     setFirstName(profile?.first_name ?? "");
     setLastName(profile?.last_name ?? "");
   }, [profile?.first_name, profile?.last_name]);
 
+  useEffect(() => {
+    setOrganisationName(institution?.name ?? "");
+  }, [institution?.name]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
     updateProfile.mutate({ firstName: firstName.trim(), lastName: lastName.trim(), userId: user.id });
+  };
+
+  const handleOrganisationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile?.institution_id || !organisationName.trim()) return;
+    updateInstitution.mutate({ institutionId: profile.institution_id, name: organisationName.trim() });
   };
 
   const birthDateFormatted = profile?.birth_date
@@ -50,6 +66,47 @@ export const AccountPage: FC = () => {
           {t("account.subtitle")}
         </p>
       </div>
+
+      {profile?.role === "owner" && profile?.institution_id && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("account.profile.organisation.title")}</CardTitle>
+            <CardDescription>{t("account.profile.organisation.description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {institutionLoading ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.subjects.loading")}</p>
+            ) : (
+              <form onSubmit={handleOrganisationSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="account-organisationName">{t("account.profile.organisation.nameLabel")}</Label>
+                  <Input
+                    id="account-organisationName"
+                    type="text"
+                    value={organisationName}
+                    onChange={(e) => setOrganisationName(e.target.value)}
+                    placeholder={t("account.profile.organisation.namePlaceholder")}
+                    autoComplete="organization"
+                  />
+                </div>
+                {updateInstitution.error && (
+                  <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+                    {updateInstitution.error.message}
+                  </p>
+                )}
+                {updateInstitution.isSuccess && (
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    {t("account.profile.organisation.saved")}
+                  </p>
+                )}
+                <Button type="submit" disabled={updateInstitution.isPending}>
+                  {updateInstitution.isPending ? t("account.profile.saving") : t("account.profile.save")}
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

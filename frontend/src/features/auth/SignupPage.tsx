@@ -1,30 +1,58 @@
-import { useState, type FC } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, type FC } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSignUpMutation } from "@/queries/auth";
+import {
+  useSignUpMutation,
+  completeOwnerSignup,
+  consumeInvite,
+  getInviteByToken,
+  authKeys,
+} from "@/queries/auth";
 
 export const SignupPage: FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite") ?? undefined;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [institutionName, setInstitutionName] = useState("");
   const [confirmEmailMessage, setConfirmEmailMessage] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<{
+    email: string;
+    institution_name: string;
+    role: string;
+  } | null>(null);
+
   const signUp = useSignUpMutation();
+
+  useEffect(() => {
+    if (!inviteToken) return;
+    getInviteByToken(inviteToken).then((info) => setInviteInfo(info ?? null));
+  }, [inviteToken]);
+
+  useEffect(() => {
+    if (inviteInfo?.email) setEmail(inviteInfo.email);
+  }, [inviteInfo?.email]);
 
   const isFormValid =
     email.trim() !== "" &&
     password.length >= 6 &&
     firstName.trim() !== "" &&
     lastName.trim() !== "" &&
-    birthDate !== "";
+    birthDate !== "" &&
+    (inviteToken ? true : institutionName.trim() !== "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,13 +70,26 @@ export const SignupPage: FC = () => {
         lastName: lastName.trim(),
         birthDate,
       });
-      if (data.session) {
+      if (data.session && data.user) {
+        if (inviteToken) {
+          await consumeInvite(inviteToken);
+        } else {
+          await completeOwnerSignup(institutionName.trim());
+        }
+        await queryClient.invalidateQueries({ queryKey: authKeys.session() });
         navigate("/account", { replace: true });
       } else {
+        if (!inviteToken && institutionName.trim()) {
+          try {
+            sessionStorage.setItem("pending_owner_institution", institutionName.trim());
+          } catch {
+            /* ignore */
+          }
+        }
         setConfirmEmailMessage(t("auth.signup.confirmEmail"));
       }
     } catch {
-      // Error shown via signUp.error
+      // Error shown via signUp.error or from RPC
     }
   };
 
@@ -57,13 +98,22 @@ export const SignupPage: FC = () => {
       <Card className="w-full max-w-md min-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">{t("auth.signup.title")}</CardTitle>
-          <CardDescription>{t("auth.signup.description")}</CardDescription>
+          <CardDescription>
+            {inviteInfo
+              ? t("auth.signup.inviteDescription", { institution: inviteInfo.institution_name })
+              : t("auth.signup.description")}
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {(signUp.error || confirmEmailMessage || validationError) && (
               <p className="text-sm text-red-600 dark:text-red-400" role="alert">
                 {signUp.error?.message ?? confirmEmailMessage ?? validationError}
+              </p>
+            )}
+            {inviteToken && inviteInfo === null && (
+              <p className="text-sm text-amber-600 dark:text-amber-400">
+                {t("auth.signup.inviteInvalidOrExpired")}
               </p>
             )}
             <div className="space-y-2">
@@ -76,6 +126,7 @@ export const SignupPage: FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 required
+                readOnly={!!inviteInfo?.email}
               />
             </div>
             <div className="space-y-2">
@@ -124,6 +175,20 @@ export const SignupPage: FC = () => {
                 required
               />
             </div>
+            {!inviteToken && (
+              <div className="space-y-2">
+                <Label htmlFor="institutionName">{t("auth.signup.institutionName")}</Label>
+                <Input
+                  id="institutionName"
+                  type="text"
+                  placeholder={t("auth.signup.institutionNamePlaceholder")}
+                  value={institutionName}
+                  onChange={(e) => setInstitutionName(e.target.value)}
+                  autoComplete="organization"
+                  required
+                />
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={signUp.isPending || !isFormValid}>

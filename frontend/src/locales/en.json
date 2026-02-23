@@ -56,7 +56,9 @@
     },
     "signup": {
       "title": "Sign up",
-      "description": "Create an account to get started.",
+      "description": "Create an account and register your institution.",
+      "inviteDescription": "You're invited to join {{institution}} as a teacher. Complete the form to sign up.",
+      "inviteInvalidOrExpired": "This invite link is invalid or has expired.",
       "email": "Email",
       "password": "Password",
       "firstName": "First name",
@@ -64,6 +66,8 @@
       "lastName": "Last name",
       "lastNamePlaceholder": "e.g. Doe",
       "birthDate": "Date of birth",
+      "institutionName": "Institution name",
+      "institutionNamePlaceholder": "e.g. My School",
       "submit": "Sign up",
       "submitting": "Creating account…",
       "hasAccount": "Already have an account?",
@@ -90,7 +94,14 @@
       "roleOwner": "Owner",
       "roleAdmin": "Admin",
       "roleTeacher": "Teacher",
-      "roleStudent": "Student"
+      "roleStudent": "Student",
+      "organisation": {
+        "title": "Organisation",
+        "description": "Your institution or school name. Only you (the owner) can change it.",
+        "nameLabel": "Organisation name",
+        "namePlaceholder": "e.g. My School",
+        "saved": "Organisation name updated."
+      }
     }
   },
   "admin": {
@@ -115,6 +126,17 @@
       "submit": "Create teacher account",
       "submitting": "Creating…",
       "success": "Teacher account created for {{email}}. They can sign in with this password."
+    },
+    "inviteTeacher": {
+      "title": "Invite teacher",
+      "description": "Send an invite link to a teacher. They will sign up with this email and join your institution.",
+      "emailLabel": "Teacher email",
+      "emailPlaceholder": "teacher@example.com",
+      "submit": "Create invite link",
+      "submitting": "Creating…",
+      "success": "Invite created. Share this link with the teacher (it expires in 7 days):",
+      "copyLink": "Copy link",
+      "copied": "Copied!"
     }
   },
   "dashboard": {

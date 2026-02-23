@@ -20,6 +20,7 @@ export interface Profile {
   first_name: string | null;
   last_name: string | null;
   birth_date: string | null; // ISO date YYYY-MM-DD
+  institution_id: string | null;
   created_at: string;
 }
 
@@ -48,7 +49,7 @@ export type AuthSession = {
 const fetchProfile = async (userId: string): Promise<Profile | null> => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, role, first_name, last_name, birth_date, created_at")
+    .select("id, role, first_name, last_name, birth_date, institution_id, created_at")
     .eq("id", userId)
     .single();
   if (error) {
@@ -176,3 +177,33 @@ export const useCreateTeacherMutation = () =>
   useMutation({
     mutationFn: createTeacherAccount,
   });
+
+/** Complete owner signup: create institution and set profile to owner. Call after signUp when no invite. */
+export async function completeOwnerSignup(institutionName: string): Promise<string> {
+  const { data, error } = await supabase.rpc("complete_owner_signup", {
+    p_institution_name: institutionName.trim(),
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+/** Consume invite: set current user's profile to teacher + institution. Call after signUp when signing up with invite. */
+export async function consumeInvite(token: string): Promise<void> {
+  const { error } = await supabase.rpc("consume_invite", { p_token: token });
+  if (error) throw error;
+}
+
+/** Get invite details by token (for signup page; no auth required). */
+export async function getInviteByToken(
+  token: string
+): Promise<{ email: string; institution_name: string; role: string } | null> {
+  const { data, error } = await supabase.rpc("get_invite_by_token", { p_token: token });
+  if (error) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.email) return null;
+  return {
+    email: row.email,
+    institution_name: row.institution_name ?? "",
+    role: row.role ?? "teacher",
+  };
+}

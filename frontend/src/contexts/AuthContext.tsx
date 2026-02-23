@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, type ReactNode } fro
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { authKeys, fetchAuthSession, type Profile } from "@/queries/auth";
+import { authKeys, fetchAuthSession, completeOwnerSignup, type Profile } from "@/queries/auth";
 
 interface AuthState {
   user: SupabaseUser | null;
@@ -35,6 +35,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, [queryClient]);
+
+  // Complete owner signup after email confirmation (institution name was stored at signup)
+  useEffect(() => {
+    if (!session?.user || !session?.profile || session.profile.role !== "student") return;
+    const pending = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("pending_owner_institution") : null;
+    if (!pending?.trim()) return;
+
+    completeOwnerSignup(pending)
+      .then(() => {
+        sessionStorage.removeItem("pending_owner_institution");
+        queryClient.invalidateQueries({ queryKey: authKeys.session() });
+      })
+      .catch(() => {
+        sessionStorage.removeItem("pending_owner_institution");
+      });
+  }, [session?.user?.id, session?.profile?.role, queryClient]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();

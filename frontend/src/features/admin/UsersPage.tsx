@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { isOwner } from "@/queries/auth";
 import type { Role } from "@/queries/auth";
+import { useCreateInviteMutation } from "@/queries/invites";
 import { useAllProfilesWithEmailQuery, useUpdateUserProfileMutation, type ProfileWithEmail } from "@/queries/users";
 import { formatDate } from "@/services/time";
 
@@ -92,6 +93,11 @@ export const UsersPage: FC = () => {
 
   const { data: users = [], isLoading } = useAllProfilesWithEmailQuery(!!owner);
   const updateProfile = useUpdateUserProfileMutation();
+  const createInvite = useCreateInviteMutation();
+
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const filteredAndSortedUsers = useMemo(
     () => filterAndSortUsers(users, searchQuery, roleFilter, sortKey, sortDir),
@@ -217,6 +223,76 @@ export const UsersPage: FC = () => {
         <h1 className="text-3xl font-bold tracking-tight">{t("admin.users.title")}</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1">{t("admin.users.subtitle")}</p>
       </div>
+
+      {owner && profile?.institution_id && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("admin.inviteTeacher.title")}</CardTitle>
+            <CardDescription>{t("admin.inviteTeacher.description")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!inviteEmail.trim() || !profile?.institution_id) return;
+                setLastInviteLink(null);
+                try {
+                  const { inviteLink } = await createInvite.mutateAsync({
+                    email: inviteEmail.trim(),
+                    institutionId: profile.institution_id,
+                    role: "teacher",
+                  });
+                  setLastInviteLink(inviteLink);
+                  setInviteEmail("");
+                } catch {
+                  // Error via createInvite.error
+                }
+              }}
+              className="flex flex-wrap items-end gap-4"
+            >
+              <div className="space-y-2 min-w-[200px] flex-1 max-w-sm">
+                <Label htmlFor="invite-email">{t("admin.inviteTeacher.emailLabel")}</Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  placeholder={t("admin.inviteTeacher.emailPlaceholder")}
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" disabled={createInvite.isPending}>
+                {createInvite.isPending ? t("admin.inviteTeacher.submitting") : t("admin.inviteTeacher.submit")}
+              </Button>
+            </form>
+            {createInvite.error && (
+              <p className="text-sm text-red-600 dark:text-red-400">{createInvite.error.message}</p>
+            )}
+            {lastInviteLink && (
+              <div className="space-y-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3">
+                <p className="text-sm text-slate-600 dark:text-slate-400">{t("admin.inviteTeacher.success")}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <code className="flex-1 min-w-0 break-all text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">
+                    {lastInviteLink}
+                  </code>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(lastInviteLink!);
+                      setCopySuccess(true);
+                      setTimeout(() => setCopySuccess(false), 2000);
+                    }}
+                  >
+                    {copySuccess ? t("admin.inviteTeacher.copied") : t("admin.inviteTeacher.copyLink")}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
