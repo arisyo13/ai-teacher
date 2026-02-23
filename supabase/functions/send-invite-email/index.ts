@@ -11,15 +11,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "Missing or invalid Authorization header" }),
+        JSON.stringify({
+          error: "Missing or invalid Authorization header",
+          code: "missing_auth_header",
+          hint: "When calling from the app, you must be logged in. When testing from the Dashboard, add header: Authorization = Bearer <your_access_token>",
+        }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const token = authHeader.slice(7);
+    const token = authHeader.slice(7).trim();
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -27,14 +31,19 @@ Deno.serve(async (req) => {
     const siteUrl = Deno.env.get("SITE_URL") ?? req.headers.get("Origin") ?? "";
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
+      global: { headers: { Authorization: authHeader } },
     });
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    const { data: { user: caller } } = await userClient.auth.getUser(token);
+    const { data: userData, error: userError } = await userClient.auth.getUser();
+    const caller = userData?.user;
     if (!caller) {
       return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
+        JSON.stringify({
+          error: "Invalid or expired token",
+          code: "invalid_token",
+          hint: userError?.message ?? "Ensure you are logged in and use the session access_token from the same Supabase project.",
+        }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

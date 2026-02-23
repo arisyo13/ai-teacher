@@ -137,6 +137,7 @@
       "success": "Invite created. Share this link with the teacher (it expires in 7 days):",
       "successEmailSent": "Invite created and email sent to {{email}}.",
       "emailSendFailed": "Email could not be sent; please share the link below.",
+      "alreadyPending": "An invite for this email is already pending. Wait for it to expire or be used before sending another.",
       "copyLink": "Copy link",
       "copied": "Copied!"
     }

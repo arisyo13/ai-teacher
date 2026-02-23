@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { isOwner } from "@/queries/auth";
 import type { Role } from "@/queries/auth";
-import { useCreateInviteMutation, sendInviteEmail } from "@/queries/invites";
+import { useCreateInviteMutation, sendInviteEmail, PENDING_INVITE_ERROR } from "@/queries/invites";
 import { useAllProfilesWithEmailQuery, useUpdateUserProfileMutation, type ProfileWithEmail } from "@/queries/users";
 import { formatDate } from "@/services/time";
 
@@ -277,7 +277,11 @@ export const UsersPage: FC = () => {
               </Button>
             </form>
             {createInvite.error && (
-              <p className="text-sm text-red-600 dark:text-red-400">{createInvite.error.message}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {(createInvite.error as Error & { code?: string }).code === PENDING_INVITE_ERROR
+                  ? t("admin.inviteTeacher.alreadyPending")
+                  : createInvite.error.message}
+              </p>
             )}
             {lastInviteLink && (
               <div className="space-y-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3">

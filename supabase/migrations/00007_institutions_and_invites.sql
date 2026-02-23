@@ -1,21 +1,21 @@
 -- Institutions: one per owner (school/organisation)
-CREATE TABLE public.institutions (
+CREATE TABLE IF NOT EXISTS public.institutions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   owner_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_institutions_owner_id ON public.institutions(owner_id);
+CREATE INDEX IF NOT EXISTS idx_institutions_owner_id ON public.institutions(owner_id);
 
 -- Profiles: link to institution (owner and teachers have one)
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS institution_id uuid REFERENCES public.institutions(id) ON DELETE SET NULL;
 
-CREATE INDEX idx_profiles_institution_id ON public.profiles(institution_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_institution_id ON public.profiles(institution_id);
 
 -- Invites: token-based signup for teachers (and later students)
-CREATE TABLE public.invites (
+CREATE TABLE IF NOT EXISTS public.invites (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_id uuid NOT NULL REFERENCES public.institutions(id) ON DELETE CASCADE,
   email text NOT NULL,
@@ -27,18 +27,20 @@ CREATE TABLE public.invites (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_invites_token ON public.invites(token);
-CREATE INDEX idx_invites_institution_id ON public.invites(institution_id);
+CREATE INDEX IF NOT EXISTS idx_invites_token ON public.invites(token);
+CREATE INDEX IF NOT EXISTS idx_invites_institution_id ON public.invites(institution_id);
 
 -- RLS
 ALTER TABLE public.institutions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invites ENABLE ROW LEVEL SECURITY;
 
 -- Institutions: owner can do everything; teachers can read their institution
+DROP POLICY IF EXISTS "Owner can manage own institution" ON public.institutions;
 CREATE POLICY "Owner can manage own institution"
   ON public.institutions FOR ALL
   USING (owner_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can read own institution" ON public.institutions;
 CREATE POLICY "Users can read own institution"
   ON public.institutions FOR SELECT
   USING (
@@ -48,6 +50,7 @@ CREATE POLICY "Users can read own institution"
   );
 
 -- Invites: only owner of the institution can create/read invites for that institution
+DROP POLICY IF EXISTS "Owner can manage invites for own institution" ON public.invites;
 CREATE POLICY "Owner can manage invites for own institution"
   ON public.invites FOR ALL
   USING (

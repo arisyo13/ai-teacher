@@ -15,11 +15,13 @@ AS $$
 $$;
 
 -- Owner can read all profile rows (for list-all and for updating others)
+DROP POLICY IF EXISTS "Owner can read all profiles" ON public.profiles;
 CREATE POLICY "Owner can read all profiles"
   ON public.profiles FOR SELECT
   USING (public.is_app_owner());
 
 -- Owner can update any profile row
+DROP POLICY IF EXISTS "Owner can update all profiles" ON public.profiles;
 CREATE POLICY "Owner can update all profiles"
   ON public.profiles FOR UPDATE
   USING (public.is_app_owner());

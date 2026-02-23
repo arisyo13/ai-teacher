@@ -14,12 +14,17 @@ import {
   authKeys,
 } from "@/queries/auth";
 
+const SIGNUP_INVITE_KEY = "signup_invite_token";
+
 export const SignupPage: FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
-  const inviteToken = searchParams.get("invite") ?? undefined;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const inviteFromUrl = searchParams.get("invite") ?? undefined;
+  const inviteFromStorage =
+    typeof sessionStorage !== "undefined" ? sessionStorage.getItem(SIGNUP_INVITE_KEY) : null;
+  const inviteToken = inviteFromUrl ?? inviteFromStorage ?? undefined;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,14 +42,29 @@ export const SignupPage: FC = () => {
 
   const signUp = useSignUpMutation();
 
+  // Persist invite token so we keep it if the URL is stripped (e.g. by router/host)
   useEffect(() => {
-    if (!inviteToken) return;
-    getInviteByToken(inviteToken).then((info) => setInviteInfo(info ?? null));
+    if (!inviteToken || typeof sessionStorage === "undefined") return;
+    sessionStorage.setItem(SIGNUP_INVITE_KEY, inviteToken);
   }, [inviteToken]);
 
+  // Restore invite in URL when we have it from storage but URL was cleared
   useEffect(() => {
-    if (inviteInfo?.email) setEmail(inviteInfo.email);
-  }, [inviteInfo?.email]);
+    if (!inviteFromStorage || inviteFromUrl) return;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("invite", inviteFromStorage);
+      return next;
+    }, { replace: true });
+  }, [inviteFromStorage, inviteFromUrl, setSearchParams]);
+
+  useEffect(() => {
+    if (!inviteToken) return;
+    getInviteByToken(inviteToken).then((info) => {
+      setInviteInfo(info ?? null);
+      if (info?.email) setEmail(info.email);
+    });
+  }, [inviteToken]);
 
   const isFormValid =
     email.trim() !== "" &&
@@ -73,6 +93,11 @@ export const SignupPage: FC = () => {
       if (data.session && data.user) {
         if (inviteToken) {
           await consumeInvite(inviteToken);
+          try {
+            sessionStorage.removeItem(SIGNUP_INVITE_KEY);
+          } catch {
+            /* ignore */
+          }
         } else {
           await completeOwnerSignup(institutionName.trim());
         }

@@ -21,9 +21,37 @@ export interface CreateInviteResult {
   inviteLink: string;
 }
 
+export const PENDING_INVITE_ERROR = "PENDING_INVITE";
+
 export async function createInvite(params: CreateInviteParams): Promise<CreateInviteResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  const email = params.email.trim().toLowerCase();
+
+  // Mark expired invites so the unique index allows a new one
+  await supabase
+    .from("invites")
+    .update({ used_at: new Date().toISOString() })
+    .eq("institution_id", params.institutionId)
+    .eq("email", email)
+    .is("used_at", null)
+    .lt("expires_at", new Date().toISOString());
+
+  const { data: existing } = await supabase
+    .from("invites")
+    .select("id")
+    .eq("institution_id", params.institutionId)
+    .eq("email", email)
+    .is("used_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+
+  if (existing) {
+    const e = new Error("An invite for this email is already pending.");
+    (e as Error & { code?: string }).code = PENDING_INVITE_ERROR;
+    throw e;
+  }
 
   const token = generateToken();
   const expiresAt = new Date();
@@ -31,14 +59,21 @@ export async function createInvite(params: CreateInviteParams): Promise<CreateIn
 
   const { error } = await supabase.from("invites").insert({
     institution_id: params.institutionId,
-    email: params.email.trim().toLowerCase(),
+    email,
     token,
     role: params.role ?? "teacher",
     created_by: user.id,
     expires_at: expiresAt.toISOString(),
   });
 
-  if (error) throw error;
+  if (error) {
+    if (error.code === "23505") {
+      const e = new Error("An invite for this email is already pending.");
+      (e as Error & { code?: string }).code = PENDING_INVITE_ERROR;
+      throw e;
+    }
+    throw error;
+  }
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const inviteLink = `${baseUrl}/signup?invite=${token}`;
