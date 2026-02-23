@@ -1,8 +1,9 @@
+import { type FC } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
-export const HomePage = () => {
+export const HomePage: FC = () => {
   const { t } = useTranslation();
   const content = [
     {
@@ -17,7 +18,22 @@ export const HomePage = () => {
       title: t("home.howItWorks.title"),
       description: t("home.howItWorks.description"),
     },
-  ]
+  ];
+
+  const actions = [
+    {
+      label: t("common.getStarted"),
+      to: "/signup",
+    },
+    {
+      label: t("common.logIn"),
+      to: "/login",
+    },
+    {
+      label: t("dashboard.title"),
+      to: "/dashboard",
+    },
+  ];
 
   return (
     <div className="w-full max-w-3xl mx-auto">
@@ -29,15 +45,11 @@ export const HomePage = () => {
           {t("home.hero.subtitle")}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <Button asChild>
-            <Link to="/signup">{t("common.getStarted")}</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/login">{t("common.logIn")}</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link to="/dashboard">{t("dashboard.title")}</Link>
-          </Button>
+          {actions.map(({ label, to }) => (
+            <Button key={label} asChild>
+              <Link to={to}>{label}</Link>
+            </Button>
+          ))}
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useCreateTeacherMutation } from "@/queries/auth";
 
-export const AdminPage = () => {
+export const AdminPage: FC = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const createTeacher = useCreateTeacherMutation();
 
@@ -18,11 +19,12 @@ export const AdminPage = () => {
     e.preventDefault();
     setSuccessMessage(null);
     try {
-      const result = await createTeacher.mutateAsync({ email, password, displayName: displayName.trim() || undefined });
+      const result = await createTeacher.mutateAsync({ email, password, firstName: firstName.trim(), lastName: lastName.trim() });
       setSuccessMessage(t("admin.createTeacher.success", { email: result.email ?? email }));
       setEmail("");
       setPassword("");
-      setDisplayName("");
+      setFirstName("");
+      setLastName("");
     } catch {
       // Error shown via createTeacher.error
     }
@@ -79,14 +81,27 @@ export const AdminPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-displayName">{t("auth.signup.displayName")}</Label>
+              <Label htmlFor="admin-firstName">{t("auth.signup.firstName")}</Label>
               <Input
-                id="admin-displayName"
+                id="admin-firstName"
                 type="text"
-                placeholder={t("auth.signup.displayNamePlaceholder")}
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder={t("auth.signup.firstNamePlaceholder")}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 autoComplete="off"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-lastName">{t("auth.signup.lastName")}</Label>
+              <Input
+                id="admin-lastName"
+                type="text"
+                placeholder={t("auth.signup.lastNamePlaceholder")}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="off"
+                required
               />
             </div>
           </CardContent>
