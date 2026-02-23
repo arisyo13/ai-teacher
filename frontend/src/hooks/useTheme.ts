@@ -7,7 +7,7 @@ import {
   type Theme,
 } from "@/lib/theme";
 
-function subscribe(callback: () => void) {
+const subscribe = (callback: () => void) => {
   const media = window.matchMedia("(prefers-color-scheme: dark)");
   const onMediaChange = () => callback();
   const unsubTheme = subscribeToThemeChange(callback);
@@ -16,21 +16,16 @@ function subscribe(callback: () => void) {
     media.removeEventListener("change", onMediaChange);
     unsubTheme();
   };
-}
+};
 
-function getSnapshot() {
-  return getResolvedTheme();
-}
+const getSnapshot = () => getResolvedTheme();
 
-function getServerSnapshot() {
-  return "light" as const;
-}
+const getServerSnapshot = () => "light" as const;
 
-export function useResolvedTheme(): "light" | "dark" {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-}
+export const useResolvedTheme = (): "light" | "dark" =>
+  useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-export function useTheme() {
+export const useTheme = () => {
   const resolved = useResolvedTheme();
   const theme = getTheme();
 
@@ -44,4 +39,4 @@ export function useTheme() {
   }, [theme, setTheme]);
 
   return { theme, resolvedTheme: resolved, setTheme, cycleTheme };
-}
+};

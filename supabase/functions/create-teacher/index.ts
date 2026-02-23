@@ -43,15 +43,16 @@ Deno.serve(async (req) => {
       .eq("id", caller.id)
       .single();
 
-    if (callerProfile?.role !== "teacher") {
+    const allowedRoles = ["teacher", "admin", "owner"];
+    if (!callerProfile?.role || !allowedRoles.includes(callerProfile.role)) {
       return new Response(
-        JSON.stringify({ error: "Only teachers can create teacher accounts" }),
+        JSON.stringify({ error: "Only teachers, admins, or owners can create teacher accounts" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const body = await req.json();
-    const { email, password, displayName } = body as { email?: string; password?: string; displayName?: string };
+    const { email, password, firstName, lastName } = body as { email?: string; password?: string; firstName?: string; lastName?: string };
     if (!email || !password || typeof email !== "string" || typeof password !== "string") {
       return new Response(
         JSON.stringify({ error: "email and password are required" }),
@@ -62,7 +63,6 @@ Deno.serve(async (req) => {
     const { data: signUpData, error: signUpError } = await adminClient.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { display_name: displayName?.trim() || null } },
     });
 
     if (signUpError) {
@@ -84,7 +84,8 @@ Deno.serve(async (req) => {
       .from("profiles")
       .update({
         role: "teacher",
-        ...(displayName?.trim() && { display_name: displayName.trim() }),
+        first_name: firstName?.trim() || null,
+        last_name: lastName?.trim() || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", newUserId);

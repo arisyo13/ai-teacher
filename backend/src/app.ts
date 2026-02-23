@@ -3,7 +3,7 @@ import cors from "@fastify/cors";
 import { healthModule } from "./modules/health/health.js";
 import { chatModule } from "./modules/chat/chat.js";
 
-export async function buildApp() {
+export const buildApp = async () => {
   const app = Fastify({ logger: true });
 
   await app.register(cors, { origin: true });

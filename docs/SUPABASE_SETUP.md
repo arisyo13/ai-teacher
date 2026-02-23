@@ -54,7 +54,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
 This creates:
 
-- **profiles** – extends Supabase Auth with `role` and `display_name` (one row per user).
+- **profiles** – extends Supabase Auth with `role`, `first_name`, and `last_name` (one row per user).
 - **subjects** – teacher-owned subjects.
 - **classes** – linked to a subject and teacher.
 - **enrollments** – which students are in which class.
@@ -70,7 +70,7 @@ It also enables Row Level Security (RLS) and adds policies so users only see the
 2. **Email** is usually enabled by default. Configure “Confirm email” if you want.
 3. (Optional) Add **Google** or other providers under Providers.
 
-Your app will use Supabase Auth for login/signup; the `profiles` table stores app-specific fields (`role`, `display_name`) and is kept in sync via a trigger when a user signs up.
+Your app will use Supabase Auth for login/signup; the `profiles` table stores app-specific fields (`role`, `first_name`, `last_name`) and is kept in sync via a trigger when a user signs up.
 
 ---
 

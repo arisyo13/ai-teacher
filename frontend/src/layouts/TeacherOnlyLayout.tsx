@@ -1,7 +1,8 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { canAccessDashboard } from "@/queries/auth";
 
-export function TeacherOnlyLayout() {
+export const TeacherOnlyLayout = () => {
   const { user, profile, loading } = useAuth();
 
   if (loading) {
@@ -16,9 +17,9 @@ export function TeacherOnlyLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  if (profile?.role !== "teacher") {
+  if (!canAccessDashboard(profile?.role)) {
     return <Navigate to="/account" replace />;
   }
 
   return <Outlet />;
-}
+};

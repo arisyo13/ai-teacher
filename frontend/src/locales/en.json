@@ -3,7 +3,8 @@
     "appName": "AI Teacher",
     "logIn": "Log in",
     "signUp": "Sign up",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "cancel": "Cancel"
   },
   "theme": {
     "toggleToDark": "Switch to dark mode",
@@ -55,16 +56,24 @@
     },
     "signup": {
       "title": "Sign up",
-      "description": "Create an account to get started.",
+      "description": "Create an account and register your institution.",
+      "inviteDescription": "You're invited to join {{institution}} as a teacher. Complete the form to sign up.",
+      "inviteInvalidOrExpired": "This invite link is invalid or has expired.",
       "email": "Email",
       "password": "Password",
-      "displayName": "Display name",
-      "displayNamePlaceholder": "Your name",
+      "firstName": "First name",
+      "firstNamePlaceholder": "e.g. Jane",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "e.g. Doe",
+      "birthDate": "Date of birth",
+      "institutionName": "Institution name",
+      "institutionNamePlaceholder": "e.g. My School",
       "submit": "Sign up",
       "submitting": "Creating account…",
       "hasAccount": "Already have an account?",
       "signInLink": "Log in",
-      "confirmEmail": "Please check your email to confirm your account before signing in."
+      "confirmEmail": "Please check your email to confirm your account before signing in.",
+      "fillAllFields": "Please fill in all fields."
     }
   },
   "account": {
@@ -74,16 +83,42 @@
       "title": "Profile",
       "description": "Your personal information.",
       "email": "Email",
-      "displayName": "Display name",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "birthDate": "Date of birth",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Profile updated.",
       "role": "Role",
       "memberSince": "Member since",
+      "roleOwner": "Owner",
+      "roleAdmin": "Admin",
       "roleTeacher": "Teacher",
-      "roleStudent": "Student"
+      "roleStudent": "Student",
+      "organisation": {
+        "title": "Organisation",
+        "description": "Your institution or school name. Only you (the owner) can change it.",
+        "nameLabel": "Organisation name",
+        "namePlaceholder": "e.g. My School",
+        "saved": "Organisation name updated."
+      }
     }
   },
   "admin": {
     "title": "Admin",
     "subtitle": "Create and manage teacher accounts. Only teachers can access this page.",
+    "users": {
+      "title": "All users",
+      "subtitle": "View and edit user profiles. Only the owner can access this page.",
+      "cardTitle": "Users",
+      "cardDescription": "Manage role, name, and birth date for each user.",
+      "empty": "No users found.",
+      "search": "Search",
+      "searchPlaceholder": "Search by email or name…",
+      "filterByRole": "Filter by role",
+      "allRoles": "All roles",
+      "showingCount": "Showing {{count}} of {{total}} users"
+    },
     "createTeacher": {
       "title": "Register new teacher",
       "description": "Create a new account with teacher role. The new teacher can sign in with the email and password you set.",
@@ -91,15 +126,30 @@
       "submit": "Create teacher account",
       "submitting": "Creating…",
       "success": "Teacher account created for {{email}}. They can sign in with this password."
+    },
+    "inviteTeacher": {
+      "title": "Invite teacher",
+      "description": "Send an invite link to a teacher. They will sign up with this email and join your institution.",
+      "emailLabel": "Teacher email",
+      "emailPlaceholder": "teacher@example.com",
+      "submit": "Create invite link",
+      "submitting": "Creating…",
+      "success": "Invite created. Share this link with the teacher (it expires in 7 days):",
+      "copyLink": "Copy link",
+      "copied": "Copied!"
     }
   },
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Overview of your classes and activity.",
     "sidebar": {
-      "overview": "Overview"
+      "overview": "Overview",
+      "subjects": "Subjects",
+      "classes": "Classes",
+      "users": "Users"
     },
     "stats": {
+      "subjects": "Subjects",
       "classes": "Classes",
       "students": "Students",
       "questionsThisWeek": "Questions this week"
@@ -113,6 +163,52 @@
       "minutesAgo": "5 min ago",
       "hoursAgo": "2 hours ago",
       "yesterday": "Yesterday"
+    },
+    "subjects": {
+      "title": "Subjects & classes",
+      "description": "Create and manage subjects, then add classes to each subject.",
+      "signInRequired": "You need to sign in to manage content.",
+      "addSubject": "Add subject",
+      "subjectName": "Subject name",
+      "subjectNamePlaceholder": "e.g. Mathematics",
+      "subjectDescription": "Description",
+      "subjectDescriptionPlaceholder": "Optional short description",
+      "create": "Create",
+      "creating": "Creating…",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDeleteSubject": "Delete this subject and all its classes?",
+      "loading": "Loading…",
+      "empty": "No subjects yet. Add one above."
+    },
+    "subjectsPage": {
+      "title": "Subjects",
+      "subtitle": "Manage your subjects. Add classes to each subject from the Classes page.",
+      "cardTitle": "Your subjects",
+      "cardDescription": "Subjects you teach. Create subjects here, then add classes from the Classes page.",
+      "empty": "No subjects yet. Add one above."
+    },
+    "classes": {
+      "title": "Classes",
+      "addClass": "Add class",
+      "className": "Class name",
+      "classNamePlaceholder": "e.g. Algebra 101",
+      "create": "Create",
+      "creating": "Creating…",
+      "empty": "No classes in this subject.",
+      "confirmDeleteClass": "Delete this class?"
+    },
+    "classesPage": {
+      "title": "Classes",
+      "subtitle": "All your classes across subjects.",
+      "cardTitle": "Your classes",
+      "cardDescription": "Classes you teach, grouped by subject on the overview.",
+      "addClass": "Add class",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Select subject",
+      "noSubjects": "Create a subject first on the Overview.",
+      "empty": "No classes yet. Create subjects and add classes from the Overview."
     }
   }
 }

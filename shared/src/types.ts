@@ -6,7 +6,8 @@ export interface User {
   id: string;
   email: string;
   role: Role;
-  displayName?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface Subject {

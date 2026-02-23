@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FC } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLoginMutation } from "@/queries/auth";
 
-export const LoginPage = () => {
+export const LoginPage: FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ export const LoginPage = () => {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md min-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">{t("auth.login.title")}</CardTitle>
           <CardDescription>{t("auth.login.description")}</CardDescription>
