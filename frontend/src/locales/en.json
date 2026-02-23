@@ -135,6 +135,8 @@
       "submit": "Create invite link",
       "submitting": "Creating…",
       "success": "Invite created. Share this link with the teacher (it expires in 7 days):",
+      "successEmailSent": "Invite created and email sent to {{email}}.",
+      "emailSendFailed": "Email could not be sent; please share the link below.",
       "copyLink": "Copy link",
       "copied": "Copied!"
     }

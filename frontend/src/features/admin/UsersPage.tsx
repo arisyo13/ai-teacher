@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { isOwner } from "@/queries/auth";
 import type { Role } from "@/queries/auth";
-import { useCreateInviteMutation } from "@/queries/invites";
+import { useCreateInviteMutation, sendInviteEmail } from "@/queries/invites";
 import { useAllProfilesWithEmailQuery, useUpdateUserProfileMutation, type ProfileWithEmail } from "@/queries/users";
 import { formatDate } from "@/services/time";
 
@@ -97,6 +97,8 @@ export const UsersPage: FC = () => {
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [lastInviteLink, setLastInviteLink] = useState<string | null>(null);
+  const [lastInviteEmail, setLastInviteEmail] = useState<string | null>(null);
+  const [emailSendError, setEmailSendError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
   const filteredAndSortedUsers = useMemo(
@@ -236,14 +238,23 @@ export const UsersPage: FC = () => {
                 e.preventDefault();
                 if (!inviteEmail.trim() || !profile?.institution_id) return;
                 setLastInviteLink(null);
+                setLastInviteEmail(null);
+                setEmailSendError(null);
+                const email = inviteEmail.trim();
                 try {
-                  const { inviteLink } = await createInvite.mutateAsync({
-                    email: inviteEmail.trim(),
+                  const { token, inviteLink } = await createInvite.mutateAsync({
+                    email,
                     institutionId: profile.institution_id,
                     role: "teacher",
                   });
                   setLastInviteLink(inviteLink);
+                  setLastInviteEmail(email);
                   setInviteEmail("");
+                  try {
+                    await sendInviteEmail(token);
+                  } catch (err) {
+                    setEmailSendError(err instanceof Error ? err.message : String(err));
+                  }
                 } catch {
                   // Error via createInvite.error
                 }
@@ -270,7 +281,16 @@ export const UsersPage: FC = () => {
             )}
             {lastInviteLink && (
               <div className="space-y-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3">
-                <p className="text-sm text-slate-600 dark:text-slate-400">{t("admin.inviteTeacher.success")}</p>
+                {emailSendError ? (
+                  <>
+                    <p className="text-sm text-amber-600 dark:text-amber-400">{t("admin.inviteTeacher.emailSendFailed")}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{t("admin.inviteTeacher.success")}</p>
+                  </>
+                ) : (
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {t("admin.inviteTeacher.successEmailSent", { email: lastInviteEmail ?? "" })}
+                  </p>
+                )}
                 <div className="flex flex-wrap items-center gap-2">
                   <code className="flex-1 min-w-0 break-all text-xs bg-white dark:bg-slate-900 px-2 py-1 rounded">
                     {lastInviteLink}
