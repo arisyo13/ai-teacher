@@ -117,7 +117,12 @@
       "searchPlaceholder": "Αναζήτηση με email ή όνομα…",
       "filterByRole": "Φίλτρο κατά ρόλο",
       "allRoles": "Όλοι οι ρόλοι",
-      "showingCount": "Εμφανίζονται {{count}} από {{total}} χρήστες"
+      "showingCount": "Εμφανίζονται {{count}} από {{total}} χρήστες",
+      "showingRange": "Εμφανίζονται {{from}}–{{to}} από {{total}} χρήστες",
+      "perPage": "Ανά σελίδα",
+      "previousPage": "Προηγούμενη",
+      "nextPage": "Επόμενη",
+      "pageOf": "Σελίδα {{page}} από {{totalPages}}"
     },
     "createTeacher": {
       "title": "Εγγραφή νέου δασκάλου",

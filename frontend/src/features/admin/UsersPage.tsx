@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState, type FC } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState, type FC } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 import {
@@ -18,7 +18,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { isOwner } from "@/queries/auth";
 import type { Role } from "@/queries/auth";
 import { useCreateInviteMutation, sendInviteEmail, PENDING_INVITE_ERROR } from "@/queries/invites";
-import { useAllProfilesWithEmailQuery, useUpdateUserProfileMutation, type ProfileWithEmail } from "@/queries/users";
+import {
+  useProfilesPaginatedQuery,
+  useUpdateUserProfileMutation,
+  type ProfileWithEmail,
+  type PaginatedParams,
+} from "@/queries/users";
 import { formatDate } from "@/services/time";
 
 const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleStudent" => {
@@ -32,53 +37,11 @@ const roleKey = (role: Role): "roleOwner" | "roleAdmin" | "roleTeacher" | "roleS
 
 const ROLES: Role[] = ["owner", "admin", "teacher", "student"];
 
-type SortKey = "email" | "first_name" | "last_name" | "birth_date" | "role";
+type SortKey = "email" | "first_name" | "last_name" | "birth_date" | "role" | "created_at";
 type SortDir = "asc" | "desc";
 
-function filterAndSortUsers(
-  users: ProfileWithEmail[],
-  searchQuery: string,
-  roleFilter: Role | "",
-  sortKey: SortKey,
-  sortDir: SortDir
-): ProfileWithEmail[] {
-  const q = searchQuery.trim().toLowerCase();
-  let list = users;
-  if (q) {
-    list = list.filter(
-      (u) =>
-        (u.email?.toLowerCase().includes(q) ?? false) ||
-        (u.first_name?.toLowerCase().includes(q) ?? false) ||
-        (u.last_name?.toLowerCase().includes(q) ?? false)
-    );
-  }
-  if (roleFilter) {
-    list = list.filter((u) => u.role === roleFilter);
-  }
-  const dir = sortDir === "asc" ? 1 : -1;
-  return [...list].sort((a, b) => {
-    let aVal: string | null = null;
-    let bVal: string | null = null;
-    if (sortKey === "email") {
-      aVal = a.email ?? "";
-      bVal = b.email ?? "";
-    } else if (sortKey === "first_name") {
-      aVal = a.first_name ?? "";
-      bVal = b.first_name ?? "";
-    } else if (sortKey === "last_name") {
-      aVal = a.last_name ?? "";
-      bVal = b.last_name ?? "";
-    } else if (sortKey === "birth_date") {
-      aVal = a.birth_date ?? "";
-      bVal = b.birth_date ?? "";
-    } else {
-      aVal = a.role;
-      bVal = b.role;
-    }
-    const cmp = aVal.localeCompare(bVal, undefined, { sensitivity: "base" });
-    return dir * cmp;
-  });
-}
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 export const UsersPage: FC = () => {
   const { t } = useTranslation();
@@ -86,12 +49,41 @@ export const UsersPage: FC = () => {
   const owner = isOwner(profile?.role);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchForApi, setSearchForApi] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "">("");
-  const [sortKey, setSortKey] = useState<SortKey>("email");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("created_at");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { data: users = [], isLoading } = useAllProfilesWithEmailQuery(!!owner);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchForApi(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const paginatedParams: PaginatedParams = useMemo(
+    () => ({
+      page,
+      pageSize,
+      search: searchForApi,
+      role: roleFilter,
+      orderBy: sortKey,
+      orderDir: sortDir,
+    }),
+    [page, pageSize, searchForApi, roleFilter, sortKey, sortDir]
+  );
+
+  const { data: paginatedResult, isLoading } = useProfilesPaginatedQuery(!!owner, paginatedParams);
+  const users = paginatedResult?.data ?? [];
+  const total = paginatedResult?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+
   const updateProfile = useUpdateUserProfileMutation();
   const createInvite = useCreateInviteMutation();
 
@@ -101,12 +93,10 @@ export const UsersPage: FC = () => {
   const [emailSendError, setEmailSendError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const filteredAndSortedUsers = useMemo(
-    () => filterAndSortUsers(users, searchQuery, roleFilter, sortKey, sortDir),
-    [users, searchQuery, roleFilter, sortKey, sortDir]
-  );
+  const resetToFirstPage = useCallback(() => setPage(1), []);
 
   const handleSort = useCallback((key: SortKey) => {
+    setPage(1);
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
@@ -210,7 +200,7 @@ export const UsersPage: FC = () => {
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns non-memoizable refs; safe for our usage
   const table = useReactTable({
-    data: filteredAndSortedUsers,
+    data: users,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -349,7 +339,10 @@ export const UsersPage: FC = () => {
               <select
                 id="users-role-filter"
                 value={roleFilter}
-                onChange={(e) => setRoleFilter((e.target.value || "") as Role | "")}
+                onChange={(e) => {
+                  setRoleFilter((e.target.value || "") as Role | "");
+                  resetToFirstPage();
+                }}
                 className="flex h-9 min-w-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-1 text-sm"
               >
                 <option value="">{t("admin.users.allRoles")}</option>
@@ -362,15 +355,37 @@ export const UsersPage: FC = () => {
             </div>
           </div>
 
-          {!isLoading && users.length > 0 && (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t("admin.users.showingCount", { count: filteredAndSortedUsers.length, total: users.length })}
-            </p>
-          )}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {!isLoading && (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {total === 0
+                  ? t("admin.users.empty")
+                  : t("admin.users.showingRange", { from, to, total })}
+              </p>
+            )}
+            <div className="flex items-center gap-2">
+              <Label htmlFor="users-page-size" className="text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                {t("admin.users.perPage")}
+              </Label>
+              <select
+                id="users-page-size"
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="flex h-9 min-w-[70px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-sm"
+              >
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           {isLoading ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.subjects.loading")}</p>
-          ) : users.length === 0 ? (
+          ) : users.length === 0 && total === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">{t("admin.users.empty")}</p>
           ) : (
             <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -421,6 +436,32 @@ export const UsersPage: FC = () => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {!isLoading && total > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-200 dark:border-slate-700">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                {t("admin.users.previousPage")}
+              </Button>
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                {t("admin.users.pageOf", { page, totalPages })}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                {t("admin.users.nextPage")}
+              </Button>
             </div>
           )}
         </CardContent>

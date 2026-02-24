@@ -16,7 +16,47 @@ export interface ProfileWithEmail {
 const keys = {
   all: ["users", "profiles"] as const,
   list: () => [...keys.all, "list"] as const,
+  listPaginated: (params: PaginatedParams) => [...keys.all, "list", "paginated", params] as const,
 };
+
+export interface PaginatedParams {
+  page: number;
+  pageSize: number;
+  search: string;
+  role: Role | "";
+  orderBy: string;
+  orderDir: "asc" | "desc";
+}
+
+export interface PaginatedProfilesResult {
+  data: ProfileWithEmail[];
+  total: number;
+}
+
+/** Fetch profiles with email (paginated). Only succeeds when current user is owner. */
+export function useProfilesPaginatedQuery(enabled: boolean, params: PaginatedParams) {
+  return useQuery({
+    queryKey: keys.listPaginated(params),
+    queryFn: async (): Promise<PaginatedProfilesResult> => {
+      const { data, error } = await supabase.rpc("get_all_profiles_with_email_paginated", {
+        p_limit: params.pageSize,
+        p_offset: (params.page - 1) * params.pageSize,
+        p_search: params.search.trim() || null,
+        p_role: params.role || null,
+        p_order_by: params.orderBy,
+        p_order_dir: params.orderDir,
+      });
+      if (error) {
+        console.error("error", error);
+        throw error;
+      };
+      const result = data as { data: ProfileWithEmail[]; total: number } | null;
+      console.log("result", result);
+      return result ?? { data: [], total: 0 };
+    },
+    enabled,
+  });
+}
 
 /** Fetch all profiles with email (RPC). Only succeeds when current user is owner. */
 export function useAllProfilesWithEmailQuery(enabled: boolean) {
@@ -54,7 +94,7 @@ export function useUpdateUserProfileMutation() {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: keys.list() });
+      qc.invalidateQueries({ queryKey: keys.all });
       qc.invalidateQueries({ queryKey: authKeys.session() });
     },
   });

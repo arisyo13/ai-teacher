@@ -117,7 +117,12 @@
       "searchPlaceholder": "Search by email or name…",
       "filterByRole": "Filter by role",
       "allRoles": "All roles",
-      "showingCount": "Showing {{count}} of {{total}} users"
+      "showingCount": "Showing {{count}} of {{total}} users",
+      "showingRange": "Showing {{from}}–{{to}} of {{total}} users",
+      "perPage": "Per page",
+      "previousPage": "Previous",
+      "nextPage": "Next",
+      "pageOf": "Page {{page}} of {{totalPages}}"
     },
     "createTeacher": {
       "title": "Register new teacher",
