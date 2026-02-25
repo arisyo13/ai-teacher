@@ -13,7 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubjectsQuery } from "@/queries/subjects";
-import { useClassesByTeacherQuery, useCreateClassMutation, type ClassRow } from "@/queries/classes";
+import { useClassesByTeacherPaginatedQuery, useCreateClassMutation, type ClassRow } from "@/queries/classes";
+
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 export const ClassesPage: FC = () => {
   const { t } = useTranslation();
@@ -21,7 +24,21 @@ export const ClassesPage: FC = () => {
   const teacherId = profile?.role && ["owner", "admin", "teacher"].includes(profile.role) ? user?.id : undefined;
 
   const { data: subjects = [], isLoading: subjectsLoading } = useSubjectsQuery(teacherId);
-  const { data: classes = [], isLoading: classesLoading } = useClassesByTeacherQuery(teacherId);
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+  const { data: paginatedResult, isLoading: classesLoading } = useClassesByTeacherPaginatedQuery(
+    teacherId,
+    page,
+    pageSize
+  );
+  const classes = paginatedResult?.data ?? [];
+  const total = paginatedResult?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+
   const createClass = useCreateClassMutation(teacherId ?? "");
 
   const [addOpen, setAddOpen] = useState(false);
@@ -39,6 +56,7 @@ export const ClassesPage: FC = () => {
       setNewClassName("");
       setNewClassSubjectId("");
       setAddOpen(false);
+      setPage(1);
     } catch {
       // Error via createClass.error
     }
@@ -143,9 +161,39 @@ export const ClassesPage: FC = () => {
                 </form>
               )}
 
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                {!classesLoading && (
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {total === 0
+                      ? t("dashboard.classesPage.empty")
+                      : t("dashboard.classes.showingRange", { from, to, total })}
+                  </p>
+                )}
+                {total > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="classes-page-size" className="text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                      {t("dashboard.classes.perPage")}
+                    </Label>
+                    <select
+                      id="classes-page-size"
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setPage(1);
+                      }}
+                      className="flex h-9 min-w-[70px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-sm"
+                    >
+                      {PAGE_SIZE_OPTIONS.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
               {isLoading ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.subjects.loading")}</p>
-              ) : classes.length === 0 ? (
+              ) : classes.length === 0 && total === 0 ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.classesPage.empty")}</p>
               ) : (
                 <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -173,6 +221,32 @@ export const ClassesPage: FC = () => {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+
+              {!classesLoading && total > 0 && totalPages > 1 && (
+                <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    {t("dashboard.classes.previousPage")}
+                  </Button>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    {t("dashboard.classes.pageOf", { page, totalPages })}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    {t("dashboard.classes.nextPage")}
+                  </Button>
                 </div>
               )}
             </>

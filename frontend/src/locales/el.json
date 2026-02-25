@@ -210,7 +210,12 @@
       "create": "Δημιουργία",
       "creating": "Δημιουργία…",
       "empty": "Δεν υπάρχουν τάξεις σε αυτό το μάθημα.",
-      "confirmDeleteClass": "Διαγραφή αυτής της τάξης;"
+      "confirmDeleteClass": "Διαγραφή αυτής της τάξης;",
+      "showingRange": "Εμφανίζονται {{from}}–{{to}} από {{total}} τάξεις",
+      "perPage": "Ανά σελίδα",
+      "previousPage": "Προηγούμενη",
+      "nextPage": "Επόμενη",
+      "pageOf": "Σελίδα {{page}} από {{totalPages}}"
     },
     "classesPage": {
       "title": "Τάξεις",

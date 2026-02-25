@@ -210,7 +210,12 @@
       "create": "Create",
       "creating": "Creating…",
       "empty": "No classes in this subject.",
-      "confirmDeleteClass": "Delete this class?"
+      "confirmDeleteClass": "Delete this class?",
+      "showingRange": "Showing {{from}}–{{to}} of {{total}} classes",
+      "perPage": "Per page",
+      "previousPage": "Previous",
+      "nextPage": "Next",
+      "pageOf": "Page {{page}} of {{totalPages}}"
     },
     "classesPage": {
       "title": "Classes",

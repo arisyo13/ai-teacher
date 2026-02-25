@@ -14,7 +14,14 @@ const keys = {
   all: ["classes"] as const,
   list: (subjectId: string) => [...keys.all, subjectId] as const,
   byTeacher: (teacherId: string) => [...keys.all, "teacher", teacherId] as const,
+  byTeacherPaginated: (teacherId: string, page: number, pageSize: number) =>
+    [...keys.all, "teacher", teacherId, "paginated", page, pageSize] as const,
 };
+
+export interface ClassesPaginatedResult {
+  data: ClassRow[];
+  total: number;
+}
 
 export function useClassesByTeacherQuery(teacherId: string | undefined) {
   return useQuery({
@@ -27,6 +34,29 @@ export function useClassesByTeacherQuery(teacherId: string | undefined) {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ClassRow[];
+    },
+    enabled: !!teacherId,
+  });
+}
+
+export function useClassesByTeacherPaginatedQuery(
+  teacherId: string | undefined,
+  page: number,
+  pageSize: number
+) {
+  return useQuery({
+    queryKey: keys.byTeacherPaginated(teacherId ?? "", page, pageSize),
+    queryFn: async (): Promise<ClassesPaginatedResult> => {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const { data, error, count } = await supabase
+        .from("classes")
+        .select("id, name, subject_id, teacher_id, created_at", { count: "exact" })
+        .eq("teacher_id", teacherId!)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+      return { data: (data ?? []) as ClassRow[], total: count ?? 0 };
     },
     enabled: !!teacherId,
   });
@@ -70,10 +100,9 @@ export function useCreateClassMutation(teacherId: string) {
       if (error) throw error;
       return data as { id: string };
     },
-    onSuccess: (_, { subjectId }) => {
-      qc.invalidateQueries({ queryKey: keys.list(subjectId) });
-      qc.invalidateQueries({ queryKey: subjectKeys.list(teacherId) });
-      qc.invalidateQueries({ queryKey: keys.byTeacher(teacherId) });
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.all });
+      qc.invalidateQueries({ queryKey: subjectKeys.all });
     },
   });
 }
@@ -89,10 +118,9 @@ export function useUpdateClassMutation(teacherId: string) {
         .eq("teacher_id", teacherId);
       if (error) throw error;
     },
-    onSuccess: (_, { subjectId }) => {
-      qc.invalidateQueries({ queryKey: keys.list(subjectId) });
-      qc.invalidateQueries({ queryKey: subjectKeys.list(teacherId) });
-      qc.invalidateQueries({ queryKey: keys.byTeacher(teacherId) });
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.all });
+      qc.invalidateQueries({ queryKey: subjectKeys.all });
     },
   });
 }
@@ -104,10 +132,9 @@ export function useDeleteClassMutation(teacherId: string) {
       const { error } = await supabase.from("classes").delete().eq("id", id).eq("teacher_id", teacherId);
       if (error) throw error;
     },
-    onSuccess: (_, { subjectId }) => {
-      qc.invalidateQueries({ queryKey: keys.list(subjectId) });
-      qc.invalidateQueries({ queryKey: subjectKeys.list(teacherId) });
-      qc.invalidateQueries({ queryKey: keys.byTeacher(teacherId) });
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.all });
+      qc.invalidateQueries({ queryKey: subjectKeys.all });
     },
   });
 }
