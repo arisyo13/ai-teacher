@@ -12,15 +12,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSubjectsQuery, useCreateSubjectMutation } from "@/queries/subjects";
+import { useSubjectsPaginatedQuery, useCreateSubjectMutation } from "@/queries/subjects";
 import type { SubjectRow } from "@/queries/subjects";
+
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 export const SubjectsPage: FC = () => {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const teacherId = profile?.role && ["owner", "admin", "teacher"].includes(profile.role) ? user?.id : undefined;
 
-  const { data: subjects = [], isLoading } = useSubjectsQuery(teacherId);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+  const { data: paginatedResult, isLoading } = useSubjectsPaginatedQuery(teacherId, page, pageSize);
+  const subjects = paginatedResult?.data ?? [];
+  const total = paginatedResult?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+
   const createSubject = useCreateSubjectMutation();
 
   const [addOpen, setAddOpen] = useState(false);
@@ -39,6 +51,7 @@ export const SubjectsPage: FC = () => {
       setNewName("");
       setNewDescription("");
       setAddOpen(false);
+      setPage(1);
     } catch {
       // Error via createSubject.error
     }
@@ -138,9 +151,39 @@ export const SubjectsPage: FC = () => {
                 </form>
               )}
 
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                {!isLoading && (
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {total === 0
+                      ? t("dashboard.subjectsPage.empty")
+                      : t("dashboard.subjects.showingRange", { from, to, total })}
+                  </p>
+                )}
+                {total > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="subjects-page-size" className="text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                      {t("dashboard.subjects.perPage")}
+                    </Label>
+                    <select
+                      id="subjects-page-size"
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setPage(1);
+                      }}
+                      className="flex h-9 min-w-[70px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-2 py-1 text-sm"
+                    >
+                      {PAGE_SIZE_OPTIONS.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
               {isLoading ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.subjects.loading")}</p>
-              ) : subjects.length === 0 ? (
+              ) : subjects.length === 0 && total === 0 ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400">{t("dashboard.subjectsPage.empty")}</p>
               ) : (
                 <div className="rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -168,6 +211,32 @@ export const SubjectsPage: FC = () => {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+
+              {!isLoading && total > 0 && totalPages > 1 && (
+                <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    {t("dashboard.subjects.previousPage")}
+                  </Button>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    {t("dashboard.subjects.pageOf", { page, totalPages })}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    {t("dashboard.subjects.nextPage")}
+                  </Button>
                 </div>
               )}
             </>

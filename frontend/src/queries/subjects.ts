@@ -20,7 +20,14 @@ export interface ClassRow {
 export const keys = {
   all: ["subjects"] as const,
   list: (teacherId: string) => [...keys.all, teacherId] as const,
+  listPaginated: (teacherId: string, page: number, pageSize: number) =>
+    [...keys.all, teacherId, "paginated", page, pageSize] as const,
 };
+
+export interface SubjectsPaginatedResult {
+  data: SubjectRow[];
+  total: number;
+}
 
 export function useSubjectsQuery(teacherId: string | undefined) {
   return useQuery({
@@ -33,6 +40,29 @@ export function useSubjectsQuery(teacherId: string | undefined) {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as SubjectRow[];
+    },
+    enabled: !!teacherId,
+  });
+}
+
+export function useSubjectsPaginatedQuery(
+  teacherId: string | undefined,
+  page: number,
+  pageSize: number
+) {
+  return useQuery({
+    queryKey: keys.listPaginated(teacherId ?? "", page, pageSize),
+    queryFn: async (): Promise<SubjectsPaginatedResult> => {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const { data, error, count } = await supabase
+        .from("subjects")
+        .select("id, name, description, teacher_id, created_at", { count: "exact" })
+        .eq("teacher_id", teacherId!)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+      return { data: (data ?? []) as SubjectRow[], total: count ?? 0 };
     },
     enabled: !!teacherId,
   });
@@ -63,7 +93,7 @@ export function useCreateSubjectMutation() {
       return data as { id: string };
     },
     onSuccess: (_, { teacherId }) => {
-      qc.invalidateQueries({ queryKey: keys.list(teacherId) });
+      qc.invalidateQueries({ queryKey: keys.all });
     },
   });
 }
@@ -91,7 +121,7 @@ export function useUpdateSubjectMutation(teacherId: string) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: keys.list(teacherId) });
+      qc.invalidateQueries({ queryKey: keys.all });
     },
   });
 }
@@ -104,7 +134,7 @@ export function useDeleteSubjectMutation(teacherId: string) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: keys.list(teacherId) });
+      qc.invalidateQueries({ queryKey: keys.all });
     },
   });
 }

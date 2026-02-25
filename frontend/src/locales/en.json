@@ -188,7 +188,12 @@
       "delete": "Delete",
       "confirmDeleteSubject": "Delete this subject and all its classes?",
       "loading": "Loading…",
-      "empty": "No subjects yet. Add one above."
+      "empty": "No subjects yet. Add one above.",
+      "showingRange": "Showing {{from}}–{{to}} of {{total}} subjects",
+      "perPage": "Per page",
+      "previousPage": "Previous",
+      "nextPage": "Next",
+      "pageOf": "Page {{page}} of {{totalPages}}"
     },
     "subjectsPage": {
       "title": "Subjects",
